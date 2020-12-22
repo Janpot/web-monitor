@@ -1,0 +1,10 @@
+version: '2'
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.5.2
+    environment:
+      discovery.type: single-node
+      ES_JAVA_OPTS: '-Xms750m -Xmx750m'
+    expose:
+      - '9200'

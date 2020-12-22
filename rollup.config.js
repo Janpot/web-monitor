@@ -1,0 +1,37 @@
+import { nodeResolve } from '@rollup/plugin-node-resolve';
+import { babel } from '@rollup/plugin-babel';
+import { terser } from 'rollup-plugin-terser';
+import replace from '@rollup/plugin-replace';
+
+const isDev = process.env.NODE_ENV === 'development';
+
+export default {
+  input: 'tag/analytics.ts',
+  output: {
+    file: 'public/analytics.js',
+    format: 'iife',
+    sourcemap: true,
+  },
+  plugins: [
+    babel({
+      extensions: ['.js', '.jsx', '.ts', '.tsx'],
+      include: ['tag/**/*'],
+      babelHelpers: 'bundled',
+      presets: [
+        ['@babel/preset-env', { targets: 'defaults' }],
+        '@babel/preset-typescript',
+      ],
+    }),
+    nodeResolve(),
+    replace({
+      'process.env.NODE_ENV': JSON.stringify(isDev ? 'development': 'production'),
+      'process.env.SCRIPT_ORIGIN': JSON.stringify(
+        isDev ? 'http://localhost:3000' : 'https://public-url-todo'
+      ),
+    }),
+    terser(),
+  ],
+  watch: {
+    clearScreen: false,
+  },
+};
