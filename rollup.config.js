@@ -18,13 +18,21 @@ export default {
       include: ['tag/**/*'],
       babelHelpers: 'bundled',
       presets: [
-        ['@babel/preset-env', { targets: 'defaults' }],
+        [
+          '@babel/preset-env',
+          {
+            // MAke sure to output ES5
+            targets: 'defaults',
+          },
+        ],
         '@babel/preset-typescript',
       ],
     }),
     nodeResolve(),
     replace({
-      'process.env.NODE_ENV': JSON.stringify(isDev ? 'development': 'production'),
+      'process.env.NODE_ENV': JSON.stringify(
+        isDev ? 'development' : 'production'
+      ),
       'process.env.SCRIPT_ORIGIN': JSON.stringify(
         isDev ? 'http://localhost:3000' : 'https://public-url-todo'
       ),

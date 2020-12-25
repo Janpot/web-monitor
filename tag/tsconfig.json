@@ -1,9 +1,0 @@
-{
-  "include": ["./**.ts"],
-  "compilerOptions": {
-    "lib": ["es5", "dom"],
-    "target": "ES5",
-    "rootDir": ".",
-    "strict": true
-  }
-}

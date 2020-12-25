@@ -1,5 +1,14 @@
 <html>
-  <body>
+  <head>
     <script async data-property="12345678" src="http://localhost:3000/analytics.js"></script>
+  </head>
+  <body>
+    <div id="test"></div>
+    hello world
+    <script>
+      setInterval(() => {
+        document.getElementById('test').style.height = `${Math.floor(Math.random() * 200)}px`
+      }, 500);
+    </script>
   </body>
 </html>

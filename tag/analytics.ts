@@ -1,80 +1,74 @@
 import * as webVitals from 'web-vitals';
+import { SerializedData, Metric } from '../src/types';
 const origin = process.env.SCRIPT_ORIGIN;
 const script = window.document.querySelector(
   `script[src="${origin}/analytics.js"]`
 );
+
+interface MetricMap {
+  [id: string]: Metric;
+}
+
 const property = script!.getAttribute('data-property')!;
+const url = window.location.href;
+const sessionStartTime = Date.now();
+const metricMap: MetricMap = {};
+let dataSent = false;
 
-interface Metric {
-  /** property */
-  p: string;
-  /** type */
-  t: 'CLS' | 'FCP' | 'FID' | 'LCP' | 'TTFB';
-  /** url */
-  u: string;
-  /** value */
-  v: number;
-  /** metric id */
-  i: string;
+function reportMetric(metric: webVitals.Metric) {
+  metricMap[metric.id] = {
+    id: metric.id,
+    name: metric.name,
+    value: metric.value,
+  };
 }
 
-interface PageView {
-  /** property */
-  p: string;
-  /** type */
-  t: 'pageview';
-  /** referrer */
-  r: string;
-  /** url */
-  u: string;
-}
-
-function sendBeacon(event: Metric | PageView) {
-  const url = `${origin}/api/collect`;
-  const data = JSON.stringify(event);
+function sendData() {
+  if (dataSent) return;
+  dataSent = true;
+  const data: SerializedData = {
+    property,
+    metrics: Object.values(metricMap),
+    url,
+    duration: Date.now() - sessionStartTime,
+  };
+  const collectUrl = `${origin}/api/collect/${property}`;
+  const serializedData = JSON.stringify(data);
   if (navigator.sendBeacon) {
-    return navigator.sendBeacon(url, data);
+    return navigator.sendBeacon(collectUrl, serializedData);
   } else {
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', url);
-    xhr.send(data);
+    xhr.open('POST', collectUrl);
+    xhr.send(serializedData);
   }
 }
 
-function reportMetric(metric: webVitals.Metric) {
-  sendBeacon({
-    p: property,
-    t: metric.name,
-    u: window.location.href,
-    i: metric.id,
-    v: metric.value,
-  });
-}
-
-webVitals.getCLS(reportMetric);
-webVitals.getFCP(reportMetric);
-webVitals.getFID(reportMetric);
-webVitals.getLCP(reportMetric);
+webVitals.getCLS(reportMetric, true);
+webVitals.getFCP(reportMetric, true);
+webVitals.getFID(reportMetric, true);
+webVitals.getLCP(reportMetric, true);
 webVitals.getTTFB(reportMetric);
 
-function pageView() {
-  sendBeacon({
-    p: property,
-    t: 'pageview',
-    r: window.document.referrer,
-    u: window.location.href,
-  });
-}
+window.addEventListener('pagehide', sendData);
 
-pageView();
-
-if (window.history) {
-  const originalPushState = window.history.pushState;
-  window.history.pushState = function () {
-    originalPushState.apply(
-      this,
-      (arguments as unknown) as Parameters<typeof window.history.pushState>
-    );
-    pageView();
-  };
-}
+// function pageView() {
+//   sendBeacon({
+//     property: property,
+//     name: 'pageview',
+//     referrer: window.document.referrer,
+//     url: window.location.href,
+//   });
+// }
+//
+// pageView();
+//
+// if (window.history) {
+//   const originalPushState = window.history.pushState;
+//   window.history.pushState = function () {
+//     originalPushState.apply(
+//       this,
+//       (arguments as unknown) as Parameters<typeof window.history.pushState>
+//     );
+//     pageView();
+//   };
+// }

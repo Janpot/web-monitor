@@ -14,6 +14,7 @@
     "prettier": "prettier --check \"**/*.{js,ts,jsx,tsx,json,yml,md}\""
   },
   "dependencies": {
+    "@elastic/elasticsearch": "^7.10.0",
     "next": "10.0.3",
     "next-auth": "^3.1.0",
     "react": "17.0.1",
