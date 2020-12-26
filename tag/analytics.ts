@@ -7,15 +7,10 @@ const script = window.document.querySelector(
 
 const property = script!.getAttribute('data-property')!;
 
-function generateUniqueID() {
-  return `v1-${Date.now()}-${Math.floor(Math.random() * (9e12 - 1)) + 1e12}`;
-}
-
 let sessionStartTime = Date.now();
 let dataSent = false;
 
-let data: SerializedPageMetrics = {
-  id: generateUniqueID(),
+const data: SerializedPageMetrics = {
   property,
   url: window.location.href,
   offset: 0,

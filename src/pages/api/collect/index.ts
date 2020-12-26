@@ -47,7 +47,6 @@ async function initialize() {
           dynamic: 'strict',
           properties: {
             property: { type: 'keyword' },
-            id: { type: 'keyword' },
             url: { type: 'text' },
             CLS: { type: 'double' },
             FCP: { type: 'double' },
