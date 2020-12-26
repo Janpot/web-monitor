@@ -33,9 +33,7 @@ export default {
       'process.env.NODE_ENV': JSON.stringify(
         isDev ? 'development' : 'production'
       ),
-      'process.env.SCRIPT_ORIGIN': JSON.stringify(
-        isDev ? 'http://localhost:3000' : 'https://public-url-todo'
-      ),
+      'process.env.SCRIPT_ORIGIN': JSON.stringify(process.env.PUBLIC_ORIGIN),
     }),
     terser(),
   ],

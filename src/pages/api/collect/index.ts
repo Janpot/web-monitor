@@ -1,6 +1,7 @@
 import { NextApiHandler } from 'next';
 import { Client } from '@elastic/elasticsearch';
 import { SerializedPageMetrics } from '../../../types';
+import properties from '../../../lib/properties';
 
 if (!process.env.ELASTICSEARCH_NODE) {
   throw new Error('Missing env variable "ELASTICSEARCH_NODE"');
@@ -72,14 +73,23 @@ export default (async (req, res) => {
   await ensureInitialized();
 
   // TODO: parse properly
-  const { offset, ...event } = JSON.parse(req.body) as SerializedPageMetrics;
+  const { offset, property: propertyId, ...event } = JSON.parse(
+    req.body
+  ) as SerializedPageMetrics;
+
+  const property = properties.find(({ id }) => id === propertyId);
+
+  if (!property) {
+    return res.status(403).end();
+  }
 
   const eventTimestamp = Date.now() + offset;
 
   const result = await client.index({
-    index: `metrics-${event.property}`,
+    index: `metrics-${property.id}`,
     body: {
       '@timestamp': new Date(eventTimestamp).toISOString(),
+      property: property.id,
       ...event,
     },
   });
