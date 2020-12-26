@@ -1,38 +1,35 @@
 import * as webVitals from 'web-vitals';
-import { SerializedData, Metric } from '../src/types';
+import { SerializedPageMetrics } from '../src/types';
 const origin = process.env.SCRIPT_ORIGIN;
 const script = window.document.querySelector(
   `script[src="${origin}/analytics.js"]`
 );
 
-interface MetricMap {
-  [id: string]: Metric;
+const property = script!.getAttribute('data-property')!;
+
+function generateUniqueID() {
+  return `v1-${Date.now()}-${Math.floor(Math.random() * (9e12 - 1)) + 1e12}`;
 }
 
-const property = script!.getAttribute('data-property')!;
-const url = window.location.href;
-const sessionStartTime = Date.now();
-const metricMap: MetricMap = {};
+let sessionStartTime = Date.now();
 let dataSent = false;
 
+let data: SerializedPageMetrics = {
+  id: generateUniqueID(),
+  property,
+  url: window.location.href,
+  offset: 0,
+};
+
 function reportMetric(metric: webVitals.Metric) {
-  metricMap[metric.id] = {
-    id: metric.id,
-    name: metric.name,
-    value: metric.value,
-  };
+  data[metric.name] = metric.value;
 }
 
 function sendData() {
   if (dataSent) return;
   dataSent = true;
-  const data: SerializedData = {
-    property,
-    metrics: Object.values(metricMap),
-    url,
-    duration: Date.now() - sessionStartTime,
-  };
-  const collectUrl = `${origin}/api/collect/${property}`;
+  data.offset = sessionStartTime - Date.now();
+  const collectUrl = `${origin}/api/collect`;
   const serializedData = JSON.stringify(data);
   if (navigator.sendBeacon) {
     return navigator.sendBeacon(collectUrl, serializedData);

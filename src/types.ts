@@ -1,12 +1,11 @@
-export interface Metric {
-  id: string;
-  name: string;
-  value: number;
-}
-
-export interface SerializedData {
+export interface SerializedPageMetrics {
   property: string;
+  id: string;
   url: string;
-  metrics: Metric[];
-  duration: number;
+  offset: number;
+  CLS?: number;
+  FCP?: number;
+  FID?: number;
+  LCP?: number;
+  TTFB?: number;
 }

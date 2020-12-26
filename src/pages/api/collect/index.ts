@@ -1,6 +1,6 @@
 import { NextApiHandler } from 'next';
 import { Client } from '@elastic/elasticsearch';
-import { SerializedData } from '../../../types';
+import { SerializedPageMetrics } from '../../../types';
 
 if (!process.env.ELASTICSEARCH_NODE) {
   throw new Error('Missing env variable "ELASTICSEARCH_NODE"');
@@ -43,10 +43,16 @@ async function initialize() {
           'index.lifecycle.name': policyName,
         },
         mappings: {
+          dynamic: 'strict',
           properties: {
-            name: { type: 'keyword' },
-            value: { type: 'double' },
+            property: { type: 'keyword' },
+            id: { type: 'keyword' },
             url: { type: 'text' },
+            CLS: { type: 'double' },
+            FCP: { type: 'double' },
+            FID: { type: 'double' },
+            LCP: { type: 'double' },
+            TTFB: { type: 'double' },
           },
         },
       },
@@ -65,24 +71,20 @@ async function ensureInitialized() {
 export default (async (req, res) => {
   await ensureInitialized();
 
-  const property = req.query.property;
+  // TODO: parse properly
+  const { offset, ...event } = JSON.parse(req.body) as SerializedPageMetrics;
 
-  const event = JSON.parse(req.body) as SerializedData;
+  const eventTimestamp = Date.now() + offset;
 
-  const eventTimestamp = Date.now() - event.duration;
-
-  const result = await client.bulk({
-    index: `metrics-${property}`,
-    body: event.metrics.flatMap((metric) => [
-      { create: {} },
-      {
-        '@timestamp': new Date(eventTimestamp).toISOString(),
-        name: metric.name,
-        url: event.url,
-        value: metric.value,
-      },
-    ]),
+  const result = await client.index({
+    index: `metrics-${event.property}`,
+    body: {
+      '@timestamp': new Date(eventTimestamp).toISOString(),
+      ...event,
+    },
   });
+
+  console.log(result);
 
   if (result.body?.errors) {
     console.error(`There were errors indexing this event`);

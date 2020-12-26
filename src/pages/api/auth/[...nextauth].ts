@@ -1,23 +1,28 @@
 import { NextApiHandler } from 'next';
-import nextAuth from 'next-auth';
+import nextAuth, { InitOptions } from 'next-auth';
 import Providers from 'next-auth/providers';
 
-if (!process.env.GITHUB_ID) {
-  throw new Error('Missing env variable "GITHUB_ID"');
-} else if (!process.env.GITHUB_SECRET) {
-  throw new Error('Missing env variable "GITHUB_SECRET"');
+if (!process.env.GOOGLE_CLIENT_ID) {
+  throw new Error('Missing env variable "GOOGLE_CLIENT_ID"');
+} else if (!process.env.GOOGLE_CLIENT_SECRET) {
+  throw new Error('Missing env variable "GOOGLE_CLIENT_SECRET"');
 }
 
-const options = {
-  // Configure one or more authentication providers
+const options: InitOptions = {
   providers: [
-    Providers.GitHub({
-      clientId: process.env.GITHUB_ID,
-      clientSecret: process.env.GITHUB_SECRET,
-      scope: 'user:email',
+    Providers.Google({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
-    // ...add more providers here
   ],
+  callbacks: {
+    signIn: async (user, account, profile) => {
+      return (
+        profile.verified_email &&
+        ['potoms.jan@gmail.com'].includes(profile.email)
+      );
+    },
+  },
 };
 
 export default ((req, res) => nextAuth(req, res, options)) as NextApiHandler;
