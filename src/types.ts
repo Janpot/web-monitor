@@ -8,3 +8,8 @@ export interface SerializedPageMetrics {
   LCP?: number;
   TTFB?: number;
 }
+
+export interface Property {
+  id: string;
+  name: string;
+}

@@ -1,23 +1,14 @@
 import * as React from 'react';
 import { signIn, signOut, useSession } from 'next-auth/client';
+import Properties from '../components/Properties';
+import Layout from '../components/Layout';
 
-export default function Home() {
+export default function Page() {
   const [session, loading] = useSession();
 
   return (
-    <div>
-      {!session && (
-        <>
-          Not signed in <br />
-          <button onClick={() => signIn()}>Sign in</button>
-        </>
-      )}
-      {session && (
-        <>
-          Signed in as {session.user.name || session.user.email} <br />
-          <button onClick={() => signOut()}>Sign out</button>
-        </>
-      )}
-    </div>
+    <Layout>
+      <Properties />
+    </Layout>
   );
 }

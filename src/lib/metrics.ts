@@ -93,3 +93,94 @@ export async function addMetric(metric: SerializedPageMetrics): Promise<void> {
     },
   });
 }
+
+export interface ChartData {
+  avg_FCP: { value: number };
+  avg_LCP: { value: number };
+  avg_FID: { value: number };
+  avg_TTFB: { value: number };
+  avg_CLS: { value: number };
+  histogram: {
+    buckets: {
+      key: number;
+      avg_FCP: { value: number };
+      avg_LCP: { value: number };
+      avg_FID: { value: number };
+      avg_TTFB: { value: number };
+      avg_CLS: { value: number };
+    }[];
+  };
+}
+
+export async function getCharts(property: string): Promise<ChartData> {
+  const end = Date.now();
+  const start = end - 1000 * 60 * 60 * 24 * 7;
+  const response = await client.search({
+    index: `${process.env.INDEX_PREFIX}-pagemetrics`,
+    body: {
+      query: {
+        bool: {
+          filter: [
+            {
+              term: {
+                property: { value: property },
+              },
+            },
+            {
+              range: {
+                '@timestamp': {
+                  gte: new Date(start).toISOString(),
+                  lte: new Date(end).toISOString(),
+                  format: 'strict_date_optional_time',
+                },
+              },
+            },
+          ],
+        },
+      },
+      size: 0,
+      aggs: {
+        avg_FCP: {
+          avg: { field: 'FCP' },
+        },
+        avg_LCP: {
+          avg: { field: 'LCP' },
+        },
+        avg_FID: {
+          avg: { field: 'FID' },
+        },
+        avg_TTFB: {
+          avg: { field: 'TTFB' },
+        },
+        avg_CLS: {
+          avg: { field: 'CLS' },
+        },
+        histogram: {
+          date_histogram: {
+            field: '@timestamp',
+            // TODO: change to '1d' as soon as we have some more data
+            calendar_interval: '1h',
+          },
+          aggs: {
+            avg_FCP: {
+              avg: { field: 'FCP' },
+            },
+            avg_LCP: {
+              avg: { field: 'LCP' },
+            },
+            avg_FID: {
+              avg: { field: 'FID' },
+            },
+            avg_TTFB: {
+              avg: { field: 'TTFB' },
+            },
+            avg_CLS: {
+              avg: { field: 'CLS' },
+            },
+          },
+        },
+      },
+    },
+  });
+  return response.body.aggregations;
+}

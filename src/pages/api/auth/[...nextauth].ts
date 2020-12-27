@@ -19,7 +19,9 @@ const options: InitOptions = {
     signIn: async (user, account, profile) => {
       return (
         profile.verified_email &&
-        ['potoms.jan@gmail.com'].includes(profile.email)
+        typeof profile.email === 'string' &&
+        (['potoms.jan@gmail.com'].includes(profile.email) ||
+          profile.email.endsWith('@woorank.com'))
       );
     },
   },

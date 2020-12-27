@@ -1,7 +1,4 @@
-interface Property {
-  id: string;
-  name: string;
-}
+import { Property } from '../types';
 
 if (typeof window !== 'undefined') {
   throw new Error('Server-only module');
@@ -17,6 +14,10 @@ const PROPERTIES: Property[] = [
     name: 'woorank.com',
   },
 ];
+
+export async function getUserProperties() {
+  return PROPERTIES;
+}
 
 export async function getProperty(
   propertyId: string
