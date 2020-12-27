@@ -49,7 +49,7 @@ async function initialize() {
   await client.indices.putIndexTemplate({
     name: `${process.env.INDEX_PREFIX}-pagemetrics-template`,
     body: {
-      index_patterns: [`${process.env.INDEX_PREFIX}-pagemetrics-*`],
+      index_patterns: [`${process.env.INDEX_PREFIX}-pagemetrics`],
       data_stream: {},
       priority: 200,
       template: {
@@ -97,7 +97,7 @@ export default (async (req, res) => {
   }
 
   const eventTimestamp = Date.now() + offset;
-  await client.index({
+  const result = await client.index({
     index: `${process.env.INDEX_PREFIX}-pagemetrics`,
     body: {
       '@timestamp': new Date(eventTimestamp).toISOString(),
@@ -105,6 +105,8 @@ export default (async (req, res) => {
       ...event,
     },
   });
+
+  console.log(JSON.stringify(result, null, 2))
 
   res.setHeader('access-control-allow-origin', '*');
   res.send('OK');
