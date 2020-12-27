@@ -98,7 +98,7 @@ export default (async (req, res) => {
 
   const eventTimestamp = Date.now() + offset;
   await client.index({
-    index: `${process.env.INDEX_PREFIX}-pagemetrics-${property.id}`,
+    index: `${process.env.INDEX_PREFIX}-pagemetrics`,
     body: {
       '@timestamp': new Date(eventTimestamp).toISOString(),
       property: property.id,
