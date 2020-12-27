@@ -1,8 +1,17 @@
 <html>
   <head>
-    <script async data-property="12345" src="https://web-monitor.vercel.app/analytics.js"></script>
+    <!-- <script async data-property="12345" src="https://web-monitor.vercel.app/analytics.js"></script> -->
   </head>
   <body>
+    <script>
+      (function() {
+        var script = document.createElement('script');
+        script.async = true
+        script.setAttribute('data-property', '23456')
+        script.src = 'https://web-monitor.vercel.app/analytics.js'
+        document.body.appendChild(script);
+      })();
+    </script>
     hello world
   </body>
 </html>
