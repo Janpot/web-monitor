@@ -6,7 +6,7 @@ interface Property {
 const PROPERTIES: Property[] = [
   {
     id: '12345',
-    name: 'wooindex',
+    name: 'test',
   },
 ];
 
