@@ -5,12 +5,24 @@ import properties from '../../../lib/properties';
 
 if (!process.env.ELASTICSEARCH_NODE) {
   throw new Error('Missing env variable "ELASTICSEARCH_NODE"');
+} else if (!process.env.INDEX_PREFIX) {
+  throw new Error('Missing env variable "INDEX_PREFIX"');
+} else if (!process.env.ELASTICSEARCH_USERNAME) {
+  throw new Error('Missing env variable "ELASTICSEARCH_USERNAME"');
+} else if (!process.env.ELASTICSEARCH_PASSWORD) {
+  throw new Error('Missing env variable "ELASTICSEARCH_PASSWORD"');
 }
 
-const client = new Client({ node: process.env.ELASTICSEARCH_NODE });
+const client = new Client({
+  node: process.env.ELASTICSEARCH_NODE,
+  auth: {
+    username: process.env.ELASTICSEARCH_USERNAME,
+    password: process.env.ELASTICSEARCH_PASSWORD,
+  },
+});
 
 async function initialize() {
-  const policyName = 'metrics-policy';
+  const policyName = `${process.env.INDEX_PREFIX}-pagemetrics-policy`;
   await client.ilm.putLifecycle({
     policy: policyName,
     body: {
@@ -20,11 +32,12 @@ async function initialize() {
             actions: {
               rollover: {
                 max_size: '25GB',
+                max_age: '1d',
               },
             },
           },
           delete: {
-            min_age: '30d',
+            min_age: '7d',
             actions: {
               delete: {},
             },
@@ -34,9 +47,9 @@ async function initialize() {
     },
   });
   await client.indices.putIndexTemplate({
-    name: 'metrics-template',
+    name: `${process.env.INDEX_PREFIX}-pagemetrics-template`,
     body: {
-      index_patterns: ['metrics-*'],
+      index_patterns: [`${process.env.INDEX_PREFIX}-pagemetrics-*`],
       data_stream: {},
       priority: 200,
       template: {
@@ -79,25 +92,19 @@ export default (async (req, res) => {
   const property = properties.find(({ id }) => id === propertyId);
 
   if (!property) {
+    console.warn(`Unknown property "${propertyId}"`);
     return res.status(403).end();
   }
 
   const eventTimestamp = Date.now() + offset;
-
-  const result = await client.index({
-    index: `metrics-${property.id}`,
+  await client.index({
+    index: `${process.env.INDEX_PREFIX}-pagemetrics-${property.id}`,
     body: {
       '@timestamp': new Date(eventTimestamp).toISOString(),
       property: property.id,
       ...event,
     },
   });
-
-  console.log(result);
-
-  if (result.body?.errors) {
-    console.error(`There were errors indexing this event`);
-  }
 
   res.setHeader('access-control-allow-origin', '*');
   res.send('OK');

@@ -1,6 +1,7 @@
 import * as webVitals from 'web-vitals';
 import { SerializedPageMetrics } from '../src/types';
-const origin = process.env.SCRIPT_ORIGIN;
+
+const origin = process.env.PUBLIC_ORIGIN;
 const script = window.document.querySelector(
   `script[src="${origin}/analytics.js"]`
 );

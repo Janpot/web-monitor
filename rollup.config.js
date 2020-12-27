@@ -2,6 +2,10 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 import { babel } from '@rollup/plugin-babel';
 import { terser } from 'rollup-plugin-terser';
 import replace from '@rollup/plugin-replace';
+import dotenv from 'dotenv';
+import * as path from 'path';
+
+dotenv.config({ path: path.resolve(__dirname, '.env.local') });
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -33,7 +37,7 @@ export default {
       'process.env.NODE_ENV': JSON.stringify(
         isDev ? 'development' : 'production'
       ),
-      'process.env.SCRIPT_ORIGIN': JSON.stringify(process.env.PUBLIC_ORIGIN),
+      'process.env.PUBLIC_ORIGIN': JSON.stringify(process.env.PUBLIC_ORIGIN),
     }),
     terser(),
   ],
