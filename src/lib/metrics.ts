@@ -55,10 +55,15 @@ async function initialize() {
           'index.lifecycle.name': policyName,
         },
         mappings: {
-          dynamic: 'strict',
+          dynamic: false,
           properties: {
             property: { type: 'keyword' },
+            browser: { type: 'keyword' },
+            device: { type: 'keyword' },
             url: { type: 'text' },
+            protocol: { type: 'text' },
+            host: { type: 'text' },
+            pathname: { type: 'text' },
             CLS: { type: 'double' },
             FCP: { type: 'double' },
             FID: { type: 'double' },
@@ -79,7 +84,17 @@ async function ensureInitialized() {
   await initPromise;
 }
 
-export async function addMetric(metric: SerializedPageMetrics): Promise<void> {
+export interface SerializedPageServerMetrics {
+  browser?: string;
+  device?: string;
+  protocol: string;
+  host: string;
+  pathname: string;
+}
+
+export async function addMetric(
+  metric: SerializedPageMetrics & SerializedPageServerMetrics
+): Promise<void> {
   await ensureInitialized();
 
   const { offset, ...event } = metric;
