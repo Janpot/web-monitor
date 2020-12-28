@@ -2,7 +2,9 @@ import { NextApiHandler } from 'next';
 import { SerializedPageMetrics } from '../../../types';
 import { getProperty } from '../../../lib/database';
 import { addMetric } from '../../../lib/metrics';
-import UAParser from 'ua-parser-js';
+import DeviceDetector from 'device-detector-js';
+
+const deviceDetector = new DeviceDetector();
 
 export default (async (req, res) => {
   // TODO: parse properly
@@ -22,11 +24,11 @@ export default (async (req, res) => {
     return res.status(403).end();
   }
 
-  const uaParser = new UAParser(req.headers['user-agent']);
+  const detected = deviceDetector.parse(req.headers['user-agent'] || '');
 
   await addMetric({
-    browser: uaParser.getBrowser().name,
-    device: uaParser.getDevice().type,
+    browser: detected.client?.name,
+    device: detected.device?.type,
     protocol: url.protocol,
     host: url.host,
     pathname: url.pathname,
