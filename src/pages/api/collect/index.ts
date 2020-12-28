@@ -26,6 +26,11 @@ export default (async (req, res) => {
 
   const detected = deviceDetector.parse(req.headers['user-agent'] || '');
 
+  if (detected.bot) {
+    console.warn(`Bot detected ${detected.bot.name}`);
+    return res.status(403).end();
+  }
+
   await addMetric({
     browser: detected.client?.name,
     device: detected.device?.type,
