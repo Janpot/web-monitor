@@ -18,7 +18,7 @@ const client = new Client({
     password: process.env.ELASTICSEARCH_PASSWORD,
   },
 });
-
+/*
 const METRICS = {
   FCP: {
     title: 'First Contentful Paint',
@@ -41,7 +41,7 @@ const METRICS = {
     target: 0.1,
   },
 };
-
+*/
 async function initialize() {
   const policyName = `${process.env.INDEX_PREFIX}-pagemetrics-policy`;
   await client.ilm.putLifecycle({
@@ -139,18 +139,18 @@ export async function addMetric(
 }
 
 export interface ChartData {
-  FCP_p75: { value: number };
-  LCP_p75: { value: number };
-  FID_p75: { value: number };
-  TTFB_p75: { value: number };
-  CLS_p75: { value: number };
+  FCP_p75: { values: { '75.0': number } };
+  LCP_p75: { values: { '75.0': number } };
+  FID_p75: { values: { '75.0': number } };
+  TTFB_p75: { values: { '75.0': number } };
+  CLS_p75: { values: { '75.0': number } };
   histogram: {
     buckets: {
-      FCP_p75: { value: number };
-      LCP_p75: { value: number };
-      FID_p75: { value: number };
-      TTFB_p75: { value: number };
-      CLS_p75: { value: number };
+      FCP_p75: { values: { '75.0': number } };
+      LCP_p75: { values: { '75.0': number } };
+      FID_p75: { values: { '75.0': number } };
+      TTFB_p75: { values: { '75.0': number } };
+      CLS_p75: { values: { '75.0': number } };
       key: number;
     }[];
   };

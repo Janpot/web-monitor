@@ -1,7 +1,7 @@
 import useSWR from 'swr';
 import * as React from 'react';
 import { Property } from '../types';
-import Link from 'next/link';
+import Link from './Link';
 
 export default function Properties() {
   const { data: properties } = useSWR<Property[]>('/api/properties');
@@ -9,7 +9,7 @@ export default function Properties() {
     <>
       {properties &&
         properties.map((property) => (
-          <div>
+          <div key={property.id}>
             <Link href={`/property/${property.id}`}>
               <a>{property.name}</a>
             </Link>

@@ -10,6 +10,7 @@ import {
   YAxis,
   Tooltip,
 } from 'recharts';
+import { Box, Paper } from '@material-ui/core';
 
 const numberFormat = new Intl.NumberFormat();
 
@@ -24,28 +25,30 @@ interface MetricProps {
 
 function Metric({ name, value, histogram }: MetricProps) {
   return (
-    <div>
-      {name}: {numberFormat.format(value)}
-      <ResponsiveContainer height={200}>
-        <LineChart data={histogram}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis
-            dataKey="key"
-            domain={['auto', 'auto']}
-            scale="time"
-            type="number"
-            tickFormatter={(unixTime) => new Date(unixTime).toLocaleString()}
-          />
-          <YAxis tickFormatter={numberFormat.format} />
-          <Tooltip
-            label={name}
-            labelFormatter={(value) => new Date(value).toLocaleString()}
-            formatter={(value) => numberFormat.format(value as number)}
-          />
-          <Line name={name} dataKey="value" isAnimationActive={false} />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
+    <Paper>
+      <Box p={2} my={3}>
+        {name}: {numberFormat.format(value)}
+        <ResponsiveContainer height={200}>
+          <LineChart data={histogram}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis
+              dataKey="key"
+              domain={['auto', 'auto']}
+              scale="time"
+              type="number"
+              tickFormatter={(unixTime) => new Date(unixTime).toLocaleString()}
+            />
+            <YAxis tickFormatter={numberFormat.format} />
+            <Tooltip
+              label={name}
+              labelFormatter={(value) => new Date(value).toLocaleString()}
+              formatter={(value) => numberFormat.format(value as number)}
+            />
+            <Line name={name} dataKey="value" isAnimationActive={false} />
+          </LineChart>
+        </ResponsiveContainer>
+      </Box>
+    </Paper>
   );
 }
 
@@ -55,10 +58,10 @@ function metricProps(
 ) {
   return {
     name,
-    value: charts[`${name}_p75` as const].value,
+    value: charts[`${name}_p75` as const].values['75.0'],
     histogram: charts.histogram.buckets.map((bucket) => ({
       key: bucket.key,
-      value: bucket[`${name}_p75` as const].value,
+      value: bucket[`${name}_p75` as const].values['75.0'],
     })),
   };
 }
