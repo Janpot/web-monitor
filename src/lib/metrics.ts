@@ -19,6 +19,29 @@ const client = new Client({
   },
 });
 
+const METRICS = {
+  FCP: {
+    title: 'First Contentful Paint',
+    target: 1000,
+  },
+  LCP: {
+    title: 'Largest Contentful Paint ',
+    target: 2500,
+  },
+  FID: {
+    title: 'First Input Delay',
+    target: 100,
+  },
+  TTFB: {
+    title: 'Time to First Byte',
+    target: 600,
+  },
+  CLS: {
+    title: 'Cumulative Layout Shift',
+    target: 0.1,
+  },
+};
+
 async function initialize() {
   const policyName = `${process.env.INDEX_PREFIX}-pagemetrics-policy`;
   await client.ilm.putLifecycle({
@@ -116,19 +139,19 @@ export async function addMetric(
 }
 
 export interface ChartData {
-  avg_FCP: { value: number };
-  avg_LCP: { value: number };
-  avg_FID: { value: number };
-  avg_TTFB: { value: number };
-  avg_CLS: { value: number };
+  FCP_p75: { value: number };
+  LCP_p75: { value: number };
+  FID_p75: { value: number };
+  TTFB_p75: { value: number };
+  CLS_p75: { value: number };
   histogram: {
     buckets: {
+      FCP_p75: { value: number };
+      LCP_p75: { value: number };
+      FID_p75: { value: number };
+      TTFB_p75: { value: number };
+      CLS_p75: { value: number };
       key: number;
-      avg_FCP: { value: number };
-      avg_LCP: { value: number };
-      avg_FID: { value: number };
-      avg_TTFB: { value: number };
-      avg_CLS: { value: number };
     }[];
   };
 }
@@ -161,20 +184,35 @@ export async function getCharts(property: string): Promise<ChartData> {
       },
       size: 0,
       aggs: {
-        avg_FCP: {
-          avg: { field: 'FCP' },
+        FCP_p75: {
+          percentiles: {
+            field: 'FCP',
+            percents: [75],
+          },
         },
-        avg_LCP: {
-          avg: { field: 'LCP' },
+        LCP_p75: {
+          percentiles: {
+            field: 'LCP',
+            percents: [75],
+          },
         },
-        avg_FID: {
-          avg: { field: 'FID' },
+        FID_p75: {
+          percentiles: {
+            field: 'FID',
+            percents: [75],
+          },
         },
-        avg_TTFB: {
-          avg: { field: 'TTFB' },
+        TTFB_p75: {
+          percentiles: {
+            field: 'TTFB',
+            percents: [75],
+          },
         },
-        avg_CLS: {
-          avg: { field: 'CLS' },
+        CLS_p75: {
+          percentiles: {
+            field: 'CLS',
+            percents: [75],
+          },
         },
         histogram: {
           date_histogram: {
@@ -183,20 +221,35 @@ export async function getCharts(property: string): Promise<ChartData> {
             calendar_interval: '1h',
           },
           aggs: {
-            avg_FCP: {
-              avg: { field: 'FCP' },
+            FCP_p75: {
+              percentiles: {
+                field: 'FCP',
+                percents: [75],
+              },
             },
-            avg_LCP: {
-              avg: { field: 'LCP' },
+            LCP_p75: {
+              percentiles: {
+                field: 'LCP',
+                percents: [75],
+              },
             },
-            avg_FID: {
-              avg: { field: 'FID' },
+            FID_p75: {
+              percentiles: {
+                field: 'FID',
+                percents: [75],
+              },
             },
-            avg_TTFB: {
-              avg: { field: 'TTFB' },
+            TTFB_p75: {
+              percentiles: {
+                field: 'TTFB',
+                percents: [75],
+              },
             },
-            avg_CLS: {
-              avg: { field: 'CLS' },
+            CLS_p75: {
+              percentiles: {
+                field: 'CLS',
+                percents: [75],
+              },
             },
           },
         },

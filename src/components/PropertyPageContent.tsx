@@ -15,17 +15,17 @@ const numberFormat = new Intl.NumberFormat();
 
 interface MetricProps {
   name: string;
-  avg: number;
+  value: number;
   histogram: {
     key: number;
     value: number;
   }[];
 }
 
-function Metric({ name, avg, histogram }: MetricProps) {
+function Metric({ name, value, histogram }: MetricProps) {
   return (
     <div>
-      {name}: {numberFormat.format(avg)}
+      {name}: {numberFormat.format(value)}
       <ResponsiveContainer height={200}>
         <LineChart data={histogram}>
           <CartesianGrid strokeDasharray="3 3" />
@@ -55,10 +55,10 @@ function metricProps(
 ) {
   return {
     name,
-    avg: charts[`avg_${name}` as const].value,
+    value: charts[`${name}_p75` as const].value,
     histogram: charts.histogram.buckets.map((bucket) => ({
       key: bucket.key,
-      value: bucket[`avg_${name}` as const].value,
+      value: bucket[`${name}_p75` as const].value,
     })),
   };
 }
