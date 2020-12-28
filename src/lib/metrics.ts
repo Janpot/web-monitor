@@ -44,6 +44,23 @@ async function initialize() {
       },
     },
   });
+  const mapping = {
+    dynamic: false,
+    properties: {
+      property: { type: 'keyword' },
+      browser: { type: 'keyword' },
+      device: { type: 'keyword' },
+      url: { type: 'text' },
+      protocol: { type: 'text' },
+      host: { type: 'text' },
+      pathname: { type: 'text' },
+      CLS: { type: 'double' },
+      FCP: { type: 'double' },
+      FID: { type: 'double' },
+      LCP: { type: 'double' },
+      TTFB: { type: 'double' },
+    },
+  };
   await client.indices.putIndexTemplate({
     name: `${process.env.INDEX_PREFIX}-pagemetrics-template`,
     body: {
@@ -54,25 +71,14 @@ async function initialize() {
         settings: {
           'index.lifecycle.name': policyName,
         },
-        mappings: {
-          dynamic: false,
-          properties: {
-            property: { type: 'keyword' },
-            browser: { type: 'keyword' },
-            device: { type: 'keyword' },
-            url: { type: 'text' },
-            protocol: { type: 'text' },
-            host: { type: 'text' },
-            pathname: { type: 'text' },
-            CLS: { type: 'double' },
-            FCP: { type: 'double' },
-            FID: { type: 'double' },
-            LCP: { type: 'double' },
-            TTFB: { type: 'double' },
-          },
-        },
+        mappings: mapping,
       },
     },
+  });
+  // update mappiong for existing indices
+  await client.indices.putMapping({
+    index: `${process.env.INDEX_PREFIX}-pagemetrics`,
+    body: mapping,
   });
 }
 
