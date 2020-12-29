@@ -1,5 +1,5 @@
 import { Client } from '@elastic/elasticsearch';
-import { SerializedPageMetrics } from '../types';
+import { SerializedPageMetrics, WebVitalsDevice } from '../types';
 
 if (!process.env.ELASTICSEARCH_NODE) {
   throw new Error('Missing env variable "ELASTICSEARCH_NODE"');
@@ -117,9 +117,9 @@ export async function addMetric(
 
 const PERCENTILES = ['75', '90', '99'] as const;
 interface Percentiles {
-  '75.0': number;
-  '90.0': number;
-  '99.0': number;
+  '75.0': number | null;
+  '90.0': number | null;
+  '99.0': number | null;
 }
 
 export interface ChartData {
@@ -140,7 +140,14 @@ export interface ChartData {
   };
 }
 
-export async function getCharts(property: string): Promise<ChartData> {
+interface GetChartsOptions {
+  device: WebVitalsDevice;
+}
+
+export async function getCharts(
+  property: string,
+  { device }: GetChartsOptions
+): Promise<ChartData> {
   const end = Date.now();
   const start = end - 1000 * 60 * 60 * 24 * 7;
   const response = await client.search({
@@ -154,6 +161,16 @@ export async function getCharts(property: string): Promise<ChartData> {
                 property: { value: property },
               },
             },
+            device
+              ? {
+                  terms: {
+                    device:
+                      device === 'mobile'
+                        ? ['smartphone', 'tablet', 'phablet']
+                        : [device],
+                  },
+                }
+              : { match_all: {} },
             {
               range: {
                 '@timestamp': {
@@ -202,6 +219,11 @@ export async function getCharts(property: string): Promise<ChartData> {
           date_histogram: {
             field: '@timestamp',
             calendar_interval: '1d',
+            min_doc_count: 0, // adds missing buckets
+            extended_bounds: {
+              min: new Date(start).toISOString(),
+              max: new Date(end).toISOString(),
+            },
           },
           aggs: {
             FCP_percentiles: {

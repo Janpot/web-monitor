@@ -15,3 +15,4 @@ export interface Property {
 }
 
 export type WebVitalsMetric = 'FCP' | 'LCP' | 'FID' | 'TTFB' | 'CLS';
+export type WebVitalsDevice = 'mobile' | 'desktop';

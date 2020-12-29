@@ -14,15 +14,30 @@ import {
 import {
   Box,
   Divider,
+  FormControlLabel,
   MenuItem,
   Paper,
+  Radio,
+  RadioGroup,
   Select,
   Toolbar,
   Typography,
   useTheme,
+  Grid,
+  makeStyles,
+  createStyles,
 } from '@material-ui/core';
-import { Property, WebVitalsMetric } from '../types';
+import { Property, WebVitalsDevice, WebVitalsMetric } from '../types';
 import Link from './Link';
+import { Skeleton } from '@material-ui/lab';
+
+const useStyles = makeStyles((theme: Theme) =>
+  createStyles({
+    toolbarControl: {
+      marginRight: theme.spacing(2),
+    },
+  })
+);
 
 type Percentile = '75.0' | '90.0' | '99.0';
 
@@ -97,10 +112,9 @@ const dateFormat = new Intl.DateTimeFormat('en', {
 
 interface WebVitalOverviewChartProps {
   name: WebVitalsMetric;
-  value: number;
   histogram: {
     key: number;
-    value: number;
+    value: number | null;
   }[];
 }
 
@@ -131,6 +145,10 @@ function WebVitalOverviewChart({
             }`
           }
           isAnimationActive={false}
+          contentStyle={{
+            background: theme.palette.background.paper,
+            borderRadius: theme.shape.borderRadius,
+          }}
         />
         <ReferenceLine
           y={METRICS[name].target}
@@ -138,6 +156,7 @@ function WebVitalOverviewChart({
             METRICS[name].unit || ''
           }`}
           stroke="red"
+          strokeDasharray="3 3"
         />
         <Line
           name={name}
@@ -152,7 +171,7 @@ function WebVitalOverviewChart({
 
 interface WebVitalSummaryProps {
   name: WebVitalsMetric;
-  value: number;
+  value: number | null;
   active?: boolean;
   onClick: () => void;
 }
@@ -170,17 +189,19 @@ function WebVitalOverviewSummary({
       flexDirection="column"
       m={2}
       alignItems="center"
+      width={60}
     >
       <div>{name}</div>
       <div>
-        {METRICS[name].format(value)} {METRICS[name].unit || ''}
+        {value === null ? '-' : METRICS[name].format(value)}{' '}
+        {METRICS[name].unit || ''}
       </div>
     </Box>
   );
 }
 
 interface WebVitalsOverviewProps {
-  charts: ChartData;
+  charts?: ChartData;
   percentile: Percentile;
 }
 
@@ -189,16 +210,24 @@ function WebVitalsOverview({ charts, percentile }: WebVitalsOverviewProps) {
     'FCP'
   );
 
-  const histogram = charts.histogram.buckets.map((bucket) => ({
-    key: bucket.key,
-    value: bucket[`${activeMetric}_percentiles` as const].values[percentile],
-  }));
+  const histogram = charts
+    ? charts.histogram.buckets.map((bucket) => ({
+        key: bucket.key,
+        value:
+          bucket[`${activeMetric}_percentiles` as const].values[percentile],
+      }))
+    : [
+        { key: Date.now() - 7 * 24 * 60 * 60 * 1000, value: null },
+        { key: Date.now(), value: null },
+      ];
 
   const summaryProps = (name: WebVitalsMetric) => ({
     name,
     active: activeMetric === name,
     onClick: () => setActiveMetric(name),
-    value: charts[`${name}_percentiles` as const].values[percentile],
+    value: charts
+      ? charts[`${name}_percentiles` as const].values[percentile]
+      : null,
   });
 
   return (
@@ -215,19 +244,15 @@ function WebVitalsOverview({ charts, percentile }: WebVitalsOverviewProps) {
           <Divider flexItem />
           <WebVitalOverviewSummary {...summaryProps('CLS')} />
         </Box>
-        <Box p={2}>
+        <Box p={2} flex={1}>
           <Typography variant="h6">{METRICS[activeMetric].title}</Typography>
           <Typography>
             {METRICS[activeMetric].description}{' '}
             <Link href={METRICS[activeMetric].link}>More info</Link>
           </Typography>
-          <WebVitalOverviewChart
-            name={activeMetric}
-            value={
-              charts[`${activeMetric}_percentiles` as const].values[percentile]
-            }
-            histogram={histogram}
-          />
+          <Box mt={6}>
+            <WebVitalOverviewChart name={activeMetric} histogram={histogram} />
+          </Box>
         </Box>
       </Box>
     </Paper>
@@ -239,24 +264,54 @@ interface PropertyProps {
 }
 
 export default function PropertyPageContent({ id }: PropertyProps) {
-  const { data: property } = useSWR<Property>(`/api/data/${id}`);
-  const { data } = useSWR<ChartData>(`/api/data/${id}/charts`);
+  const classes = useStyles();
   const [percentile, setPercentile] = React.useState<Percentile>('75.0');
+  const [device, setDevice] = React.useState<WebVitalsDevice>('mobile');
+  const { data: property } = useSWR<Property>(`/api/data/${id}`);
+  const { data } = useSWR<ChartData>(
+    `/api/data/${id}/charts?device=${encodeURIComponent(device)}`
+  );
   return (
     <>
-      <Typography variant="h2">{property ? property.name : '-'}</Typography>
-      <Toolbar disableGutters>
-        <Select
-          variant="outlined"
-          value={percentile}
-          onChange={(e) => setPercentile(e.target.value as Percentile)}
-        >
-          <MenuItem value="75.0">75th percentile</MenuItem>
-          <MenuItem value="90.0">90th percentile</MenuItem>
-          <MenuItem value="99.0">99th percentile</MenuItem>
-        </Select>
-      </Toolbar>
-      {data && <WebVitalsOverview charts={data} percentile={percentile} />}
+      <Typography variant="h2">
+        {property ? property.name : <Skeleton width={260} />}
+      </Typography>
+      <Box my={3}>
+        <Toolbar disableGutters>
+          <Select
+            className={classes.toolbarControl}
+            variant="outlined"
+            value={percentile}
+            onChange={(e) => setPercentile(e.target.value as Percentile)}
+          >
+            <MenuItem value="75.0">75th percentile</MenuItem>
+            <MenuItem value="90.0">90th percentile</MenuItem>
+            <MenuItem value="99.0">99th percentile</MenuItem>
+          </Select>
+          <RadioGroup
+            className={classes.toolbarControl}
+            row
+            value={device}
+            onChange={(e) => setDevice(e.target.value as WebVitalsDevice)}
+          >
+            <FormControlLabel
+              value="mobile"
+              control={<Radio />}
+              label="Mobile"
+            />
+            <FormControlLabel
+              value="desktop"
+              control={<Radio />}
+              label="Desktop"
+            />
+          </RadioGroup>
+        </Toolbar>
+      </Box>
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <WebVitalsOverview charts={data} percentile={percentile} />
+        </Grid>
+      </Grid>
     </>
   );
 }
