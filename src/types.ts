@@ -13,3 +13,5 @@ export interface Property {
   id: string;
   name: string;
 }
+
+export type WebVitalsMetric = 'FCP' | 'LCP' | 'FID' | 'TTFB' | 'CLS';

@@ -18,30 +18,7 @@ const client = new Client({
     password: process.env.ELASTICSEARCH_PASSWORD,
   },
 });
-/*
-const METRICS = {
-  FCP: {
-    title: 'First Contentful Paint',
-    target: 1000,
-  },
-  LCP: {
-    title: 'Largest Contentful Paint ',
-    target: 2500,
-  },
-  FID: {
-    title: 'First Input Delay',
-    target: 100,
-  },
-  TTFB: {
-    title: 'Time to First Byte',
-    target: 600,
-  },
-  CLS: {
-    title: 'Cumulative Layout Shift',
-    target: 0.1,
-  },
-};
-*/
+
 async function initialize() {
   const policyName = `${process.env.INDEX_PREFIX}-pagemetrics-policy`;
   await client.ilm.putLifecycle({
@@ -138,19 +115,26 @@ export async function addMetric(
   });
 }
 
+const PERCENTILES = ['75', '90', '99'] as const;
+interface Percentiles {
+  '75.0': number;
+  '90.0': number;
+  '99.0': number;
+}
+
 export interface ChartData {
-  FCP_p75: { values: { '75.0': number } };
-  LCP_p75: { values: { '75.0': number } };
-  FID_p75: { values: { '75.0': number } };
-  TTFB_p75: { values: { '75.0': number } };
-  CLS_p75: { values: { '75.0': number } };
+  FCP_percentiles: { values: Percentiles };
+  LCP_percentiles: { values: Percentiles };
+  FID_percentiles: { values: Percentiles };
+  TTFB_percentiles: { values: Percentiles };
+  CLS_percentiles: { values: Percentiles };
   histogram: {
     buckets: {
-      FCP_p75: { values: { '75.0': number } };
-      LCP_p75: { values: { '75.0': number } };
-      FID_p75: { values: { '75.0': number } };
-      TTFB_p75: { values: { '75.0': number } };
-      CLS_p75: { values: { '75.0': number } };
+      FCP_percentiles: { values: Percentiles };
+      LCP_percentiles: { values: Percentiles };
+      FID_percentiles: { values: Percentiles };
+      TTFB_percentiles: { values: Percentiles };
+      CLS_percentiles: { values: Percentiles };
       key: number;
     }[];
   };
@@ -184,71 +168,70 @@ export async function getCharts(property: string): Promise<ChartData> {
       },
       size: 0,
       aggs: {
-        FCP_p75: {
+        FCP_percentiles: {
           percentiles: {
             field: 'FCP',
-            percents: [75],
+            percents: PERCENTILES,
           },
         },
-        LCP_p75: {
+        LCP_percentiles: {
           percentiles: {
             field: 'LCP',
-            percents: [75],
+            percents: PERCENTILES,
           },
         },
-        FID_p75: {
+        FID_percentiles: {
           percentiles: {
             field: 'FID',
-            percents: [75],
+            percents: PERCENTILES,
           },
         },
-        TTFB_p75: {
+        TTFB_percentiles: {
           percentiles: {
             field: 'TTFB',
-            percents: [75],
+            percents: PERCENTILES,
           },
         },
-        CLS_p75: {
+        CLS_percentiles: {
           percentiles: {
             field: 'CLS',
-            percents: [75],
+            percents: PERCENTILES,
           },
         },
         histogram: {
           date_histogram: {
             field: '@timestamp',
-            // TODO: change to '1d' as soon as we have some more data
-            calendar_interval: '1h',
+            calendar_interval: '1d',
           },
           aggs: {
-            FCP_p75: {
+            FCP_percentiles: {
               percentiles: {
                 field: 'FCP',
-                percents: [75],
+                percents: PERCENTILES,
               },
             },
-            LCP_p75: {
+            LCP_percentiles: {
               percentiles: {
                 field: 'LCP',
-                percents: [75],
+                percents: PERCENTILES,
               },
             },
-            FID_p75: {
+            FID_percentiles: {
               percentiles: {
                 field: 'FID',
-                percents: [75],
+                percents: PERCENTILES,
               },
             },
-            TTFB_p75: {
+            TTFB_percentiles: {
               percentiles: {
                 field: 'TTFB',
-                percents: [75],
+                percents: PERCENTILES,
               },
             },
-            CLS_p75: {
+            CLS_percentiles: {
               percentiles: {
                 field: 'CLS',
-                percents: [75],
+                percents: PERCENTILES,
               },
             },
           },

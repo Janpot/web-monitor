@@ -12,6 +12,7 @@ import {
   Typography,
   CircularProgress,
 } from '@material-ui/core';
+import Link from './Link';
 
 export interface LayoutProps {
   children?: React.ReactNode;
@@ -40,8 +41,10 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <>
       <Container>
-        <Toolbar>
-          <Typography variant="h6">Web Monitor</Typography>
+        <Toolbar disableGutters>
+          <Link href="/">
+            <Typography variant="h6">Web Monitor</Typography>
+          </Link>
           <Box flex={1} />
           {session ? (
             <>
