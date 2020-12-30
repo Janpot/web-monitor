@@ -20,7 +20,7 @@ const options: InitOptions = {
       return (
         profile.verified_email &&
         typeof profile.email === 'string' &&
-        (['potoms.jan@gmail.com'].includes(profile.email) ||
+        (['potoms.jan@gmail.com', 'casierj@gmail.com'].includes(profile.email) ||
           profile.email.endsWith('@woorank.com'))
       );
     },
