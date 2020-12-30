@@ -50,9 +50,21 @@ async function initialize() {
       property: { type: 'keyword' },
       browser: { type: 'keyword' },
       device: { type: 'keyword' },
+      location: {
+        properties: {
+          href: { type: 'keyword' },
+          protocol: { type: 'keyword' },
+          host: { type: 'keyword' },
+          pathname: { type: 'keyword' },
+        },
+      },
+      // deprecated, we really didn't need text search here
       url: { type: 'text' },
+      // deprecated, we really didn't need text search here
       protocol: { type: 'text' },
+      // deprecated, we really didn't need text search here
       host: { type: 'text' },
+      // deprecated, we really didn't need text search here
       pathname: { type: 'text' },
       CLS: { type: 'double' },
       FCP: { type: 'double' },
@@ -103,7 +115,13 @@ export async function addMetric(
 ): Promise<void> {
   await ensureInitialized();
 
-  const { offset, ...event } = metric;
+  const { offset, url, protocol, host, pathname, ...event } = metric;
+  const location = {
+    href: url,
+    protocol,
+    host,
+    pathname,
+  };
 
   const eventTimestamp = Date.now() + offset;
   await client.index({
@@ -111,6 +129,7 @@ export async function addMetric(
     body: {
       '@timestamp': new Date(eventTimestamp).toISOString(),
       ...event,
+      location,
     },
   });
 }
