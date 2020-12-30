@@ -30,11 +30,28 @@ import {
 import { Property, WebVitalsDevice, WebVitalsMetric } from '../types';
 import Link from './Link';
 import { Skeleton } from '@material-ui/lab';
+import clsx from 'clsx';
 
-const useStyles = makeStyles((theme: Theme) =>
+const useStyles = makeStyles((theme) =>
   createStyles({
     toolbarControl: {
       marginRight: theme.spacing(2),
+    },
+    active: {},
+    webVitalSummary: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      width: 100,
+      padding: theme.spacing(2),
+      cursor: 'pointer',
+      background: theme.palette.grey[900],
+      '&$active': {
+        background: theme.palette.background.paper,
+      },
+      '&:hover': {
+        opacity: 0.7,
+      },
     },
   })
 );
@@ -182,21 +199,18 @@ function WebVitalOverviewSummary({
   active,
   onClick,
 }: WebVitalSummaryProps) {
+  const classes = useStyles();
   return (
-    <Box
+    <div
+      className={clsx(classes.webVitalSummary, { [classes.active]: active })}
       onClick={onClick}
-      display="flex"
-      flexDirection="column"
-      m={2}
-      alignItems="center"
-      width={60}
     >
       <div>{name}</div>
       <div>
         {value === null ? '-' : METRICS[name].format(value)}{' '}
         {METRICS[name].unit || ''}
       </div>
-    </Box>
+    </div>
   );
 }
 
@@ -244,13 +258,13 @@ function WebVitalsOverview({ charts, percentile }: WebVitalsOverviewProps) {
           <Divider flexItem />
           <WebVitalOverviewSummary {...summaryProps('CLS')} />
         </Box>
-        <Box p={2} flex={1}>
+        <Box p={3} flex={1} width={0}>
           <Typography variant="h6">{METRICS[activeMetric].title}</Typography>
           <Typography>
             {METRICS[activeMetric].description}{' '}
             <Link href={METRICS[activeMetric].link}>More info</Link>
           </Typography>
-          <Box mt={6}>
+          <Box mt={5} width="100%">
             <WebVitalOverviewChart name={activeMetric} histogram={histogram} />
           </Box>
         </Box>
