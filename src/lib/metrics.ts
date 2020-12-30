@@ -1,5 +1,9 @@
 import { Client } from '@elastic/elasticsearch';
-import { SerializedPageMetrics, WebVitalsDevice } from '../types';
+import {
+  SerializedPageMetrics,
+  WebVitalsDevice,
+  WebVitalsMetric,
+} from '../types';
 
 if (!process.env.ELASTICSEARCH_NODE) {
   throw new Error('Missing env variable "ELASTICSEARCH_NODE"');
@@ -128,7 +132,7 @@ export async function addMetric(
     index: `${process.env.INDEX_PREFIX}-pagemetrics`,
     body: {
       '@timestamp': new Date(eventTimestamp).toISOString(),
-      ...event
+      ...event,
     },
   });
 }
@@ -148,18 +152,68 @@ export interface ChartData {
   CLS_percentiles: { values: Percentiles };
   histogram: {
     buckets: {
+      key: number;
+      doc_count: number;
       FCP_percentiles: { values: Percentiles };
       LCP_percentiles: { values: Percentiles };
       FID_percentiles: { values: Percentiles };
       TTFB_percentiles: { values: Percentiles };
       CLS_percentiles: { values: Percentiles };
-      key: number;
     }[];
+  };
+}
+
+interface MakeEsQueryOptions {
+  start: number;
+  end: number;
+  property: string;
+  device: WebVitalsDevice;
+}
+
+function makeEsQuery({ start, end, property, device }: MakeEsQueryOptions) {
+  return {
+    bool: {
+      filter: [
+        {
+          term: {
+            property: { value: property },
+          },
+        },
+        device
+          ? {
+              terms: {
+                device:
+                  device === 'mobile'
+                    ? ['smartphone', 'tablet', 'phablet']
+                    : [device],
+              },
+            }
+          : { match_all: {} },
+        {
+          range: {
+            '@timestamp': {
+              gte: new Date(start).toISOString(),
+              lte: new Date(end).toISOString(),
+              format: 'strict_date_optional_time',
+            },
+          },
+        },
+      ],
+    },
   };
 }
 
 interface GetChartsOptions {
   device: WebVitalsDevice;
+}
+
+function percentiles(field: WebVitalsMetric) {
+  return {
+    percentiles: {
+      field,
+      percents: PERCENTILES,
+    },
+  };
 }
 
 export async function getCharts(
@@ -171,68 +225,14 @@ export async function getCharts(
   const response = await client.search({
     index: `${process.env.INDEX_PREFIX}-pagemetrics`,
     body: {
-      query: {
-        bool: {
-          filter: [
-            {
-              term: {
-                property: { value: property },
-              },
-            },
-            device
-              ? {
-                  terms: {
-                    device:
-                      device === 'mobile'
-                        ? ['smartphone', 'tablet', 'phablet']
-                        : [device],
-                  },
-                }
-              : { match_all: {} },
-            {
-              range: {
-                '@timestamp': {
-                  gte: new Date(start).toISOString(),
-                  lte: new Date(end).toISOString(),
-                  format: 'strict_date_optional_time',
-                },
-              },
-            },
-          ],
-        },
-      },
+      query: makeEsQuery({ start, end, property, device }),
       size: 0,
       aggs: {
-        FCP_percentiles: {
-          percentiles: {
-            field: 'FCP',
-            percents: PERCENTILES,
-          },
-        },
-        LCP_percentiles: {
-          percentiles: {
-            field: 'LCP',
-            percents: PERCENTILES,
-          },
-        },
-        FID_percentiles: {
-          percentiles: {
-            field: 'FID',
-            percents: PERCENTILES,
-          },
-        },
-        TTFB_percentiles: {
-          percentiles: {
-            field: 'TTFB',
-            percents: PERCENTILES,
-          },
-        },
-        CLS_percentiles: {
-          percentiles: {
-            field: 'CLS',
-            percents: PERCENTILES,
-          },
-        },
+        FCP_percentiles: percentiles('FCP'),
+        LCP_percentiles: percentiles('LCP'),
+        FID_percentiles: percentiles('FID'),
+        TTFB_percentiles: percentiles('TTFB'),
+        CLS_percentiles: percentiles('CLS'),
         histogram: {
           date_histogram: {
             field: '@timestamp',
@@ -244,36 +244,56 @@ export async function getCharts(
             },
           },
           aggs: {
-            FCP_percentiles: {
-              percentiles: {
-                field: 'FCP',
-                percents: PERCENTILES,
-              },
-            },
-            LCP_percentiles: {
-              percentiles: {
-                field: 'LCP',
-                percents: PERCENTILES,
-              },
-            },
-            FID_percentiles: {
-              percentiles: {
-                field: 'FID',
-                percents: PERCENTILES,
-              },
-            },
-            TTFB_percentiles: {
-              percentiles: {
-                field: 'TTFB',
-                percents: PERCENTILES,
-              },
-            },
-            CLS_percentiles: {
-              percentiles: {
-                field: 'CLS',
-                percents: PERCENTILES,
-              },
-            },
+            FCP_percentiles: percentiles('FCP'),
+            LCP_percentiles: percentiles('LCP'),
+            FID_percentiles: percentiles('FID'),
+            TTFB_percentiles: percentiles('TTFB'),
+            CLS_percentiles: percentiles('CLS'),
+          },
+        },
+      },
+    },
+  });
+  return response.body.aggregations;
+}
+
+export interface WebVitalsPagesData {
+  pages: {
+    buckets: {
+      key: string;
+      doc_count: number;
+      FCP_percentiles: { values: Percentiles };
+      LCP_percentiles: { values: Percentiles };
+      FID_percentiles: { values: Percentiles };
+      TTFB_percentiles: { values: Percentiles };
+      CLS_percentiles: { values: Percentiles };
+    }[];
+  };
+}
+
+export async function getWebVitalsPages(
+  property: string,
+  { device }: GetChartsOptions
+) {
+  const end = Date.now();
+  const start = end - 1000 * 60 * 60 * 24 * 7;
+  const response = await client.search({
+    index: `${process.env.INDEX_PREFIX}-pagemetrics`,
+    body: {
+      query: makeEsQuery({ start, end, property, device }),
+      size: 0,
+      aggs: {
+        pages: {
+          terms: {
+            field: 'location.href',
+            size: 10,
+          },
+          aggs: {
+            FCP_percentiles: percentiles('FCP'),
+            LCP_percentiles: percentiles('LCP'),
+            FID_percentiles: percentiles('FID'),
+            TTFB_percentiles: percentiles('TTFB'),
+            CLS_percentiles: percentiles('CLS'),
           },
         },
       },

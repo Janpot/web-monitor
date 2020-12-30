@@ -1,6 +1,6 @@
 import useSWR from 'swr';
 import * as React from 'react';
-import { ChartData } from '../lib/metrics';
+import { ChartData, WebVitalsPagesData } from '../lib/metrics';
 import {
   ResponsiveContainer,
   LineChart,
@@ -27,6 +27,12 @@ import {
   makeStyles,
   createStyles,
   lighten,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from '@material-ui/core';
 import { Property, WebVitalsDevice, WebVitalsMetric } from '../types';
 import Link from './Link';
@@ -219,18 +225,18 @@ function WebVitalOverviewSummary({
 }
 
 interface WebVitalsOverviewProps {
-  charts?: ChartData;
+  data?: ChartData;
   percentile: Percentile;
 }
 
-function WebVitalsOverview({ charts, percentile }: WebVitalsOverviewProps) {
+function WebVitalsOverview({ data, percentile }: WebVitalsOverviewProps) {
   const classes = useStyles();
   const [activeMetric, setActiveMetric] = React.useState<WebVitalsMetric>(
     'FCP'
   );
 
-  const histogram = charts
-    ? charts.histogram.buckets.map((bucket) => ({
+  const histogram = data
+    ? data.histogram.buckets.map((bucket) => ({
         key: bucket.key,
         value:
           bucket[`${activeMetric}_percentiles` as const].values[percentile],
@@ -244,8 +250,8 @@ function WebVitalsOverview({ charts, percentile }: WebVitalsOverviewProps) {
     name,
     active: activeMetric === name,
     onClick: () => setActiveMetric(name),
-    value: charts
-      ? charts[`${name}_percentiles` as const].values[percentile]
+    value: data
+      ? data[`${name}_percentiles` as const].values[percentile]
       : null,
   });
 
@@ -273,11 +279,77 @@ function WebVitalsOverview({ charts, percentile }: WebVitalsOverviewProps) {
             {METRICS[activeMetric].description}{' '}
             <Link href={METRICS[activeMetric].link}>More info</Link>
           </Typography>
-          <Box mt={5} width="100%">
+          <Box mt={5}>
             <WebVitalOverviewChart name={activeMetric} histogram={histogram} />
           </Box>
         </Box>
       </Box>
+    </Paper>
+  );
+}
+
+interface WebVitalsPagesProps {
+  data?: WebVitalsPagesData;
+  percentile: Percentile;
+}
+
+function columnHeader(name: WebVitalsMetric): string {
+  return `${name} ${METRICS[name].unit ? `(${METRICS[name].unit})` : ''}`;
+}
+
+function columnValue(
+  name: WebVitalsMetric,
+  percentile: Percentile,
+  bucket: WebVitalsPagesData['pages']['buckets'][number]
+): string {
+  const value = bucket[`${name}_percentiles` as const].values[percentile];
+  return value ? METRICS[name].format(value) : '-';
+}
+
+function WebVitalsPages({ data, percentile }: WebVitalsPagesProps) {
+  return (
+    <Paper>
+      <Box p={2}>
+        <Typography variant="h6">By page</Typography>
+      </Box>
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Url</TableCell>
+              <TableCell align="right">{columnHeader('FCP')}</TableCell>
+              <TableCell align="right">{columnHeader('LCP')}</TableCell>
+              <TableCell align="right">{columnHeader('FID')}</TableCell>
+              <TableCell align="right">{columnHeader('TTFB')}</TableCell>
+              <TableCell align="right">{columnHeader('CLS')}</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data?.pages.buckets.map((bucket) => (
+              <TableRow key={bucket.key}>
+                <TableCell component="th" scope="row">
+                  {bucket.key}
+                </TableCell>
+                <TableCell align="right">
+                  {columnValue('FCP', percentile, bucket)}
+                </TableCell>
+                <TableCell align="right">
+                  {columnValue('LCP', percentile, bucket)}
+                </TableCell>
+                <TableCell align="right">
+                  {columnValue('FID', percentile, bucket)}
+                </TableCell>
+                <TableCell align="right">
+                  {columnValue('TTFB', percentile, bucket)}
+                </TableCell>
+                <TableCell align="right">
+                  {columnValue('CLS', percentile, bucket)}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </Paper>
   );
 }
@@ -291,8 +363,11 @@ export default function PropertyPageContent({ id }: PropertyProps) {
   const [percentile, setPercentile] = React.useState<Percentile>('75.0');
   const [device, setDevice] = React.useState<WebVitalsDevice>('mobile');
   const { data: property } = useSWR<Property>(`/api/data/${id}`);
-  const { data } = useSWR<ChartData>(
-    `/api/data/${id}/charts?device=${encodeURIComponent(device)}`
+  const { data: overviewData } = useSWR<ChartData>(
+    `/api/data/${id}/web-vitals-overview?device=${encodeURIComponent(device)}`
+  );
+  const { data: pagesData } = useSWR<WebVitalsPagesData>(
+    `/api/data/${id}/web-vitals-pages?device=${encodeURIComponent(device)}`
   );
   return (
     <>
@@ -330,9 +405,12 @@ export default function PropertyPageContent({ id }: PropertyProps) {
           </RadioGroup>
         </Toolbar>
       </Box>
-      <Grid container spacing={2}>
+      <Grid container spacing={4}>
         <Grid item xs={12}>
-          <WebVitalsOverview charts={data} percentile={percentile} />
+          <WebVitalsOverview data={overviewData} percentile={percentile} />
+        </Grid>
+        <Grid item xs={12}>
+          <WebVitalsPages data={pagesData} percentile={percentile} />
         </Grid>
       </Grid>
     </>
