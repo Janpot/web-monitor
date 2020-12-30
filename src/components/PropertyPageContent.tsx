@@ -26,6 +26,7 @@ import {
   Grid,
   makeStyles,
   createStyles,
+  lighten,
 } from '@material-ui/core';
 import { Property, WebVitalsDevice, WebVitalsMetric } from '../types';
 import Link from './Link';
@@ -38,6 +39,9 @@ const useStyles = makeStyles((theme) =>
       marginRight: theme.spacing(2),
     },
     active: {},
+    webVitalsSummaries: {
+      background: theme.palette.grey[900],
+    },
     webVitalSummary: {
       display: 'flex',
       flexDirection: 'column',
@@ -45,12 +49,12 @@ const useStyles = makeStyles((theme) =>
       width: 100,
       padding: theme.spacing(2),
       cursor: 'pointer',
-      background: theme.palette.grey[900],
-      '&$active': {
+      '&$active, &$active:hover': {
+        cursor: 'unset',
         background: theme.palette.background.paper,
       },
       '&:hover': {
-        opacity: 0.7,
+        background: lighten(theme.palette.grey[900], 0.05),
       },
     },
   })
@@ -220,6 +224,7 @@ interface WebVitalsOverviewProps {
 }
 
 function WebVitalsOverview({ charts, percentile }: WebVitalsOverviewProps) {
+  const classes = useStyles();
   const [activeMetric, setActiveMetric] = React.useState<WebVitalsMetric>(
     'FCP'
   );
@@ -247,7 +252,11 @@ function WebVitalsOverview({ charts, percentile }: WebVitalsOverviewProps) {
   return (
     <Paper>
       <Box display="flex" flexDirection="row">
-        <Box display="flex" flexDirection="column">
+        <Box
+          display="flex"
+          flexDirection="column"
+          className={classes.webVitalsSummaries}
+        >
           <WebVitalOverviewSummary {...summaryProps('FCP')} />
           <Divider flexItem />
           <WebVitalOverviewSummary {...summaryProps('LCP')} />
