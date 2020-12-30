@@ -11,9 +11,26 @@ const property = script!.getAttribute('data-property')!;
 let sessionStartTime = Date.now();
 let dataSent = false;
 
+declare global {
+  interface Navigator {
+    connection?: NetworkInformation;
+    mozConnection?: NetworkInformation;
+    webkitConnection?: NetworkInformation;
+  }
+}
+
+interface NetworkInformation {
+  effectiveType?: string;
+}
+
+const networkInfo =
+  navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+const connection = networkInfo?.effectiveType;
+
 const data: SerializedPageMetrics = {
   property,
   url: window.location.href,
+  connection,
   offset: 0,
 };
 

@@ -8,10 +8,12 @@ const PROPERTIES: Property[] = [
   {
     id: '12345',
     name: 'test',
+    ignoredQueryParams: [],
   },
   {
     id: '23456',
     name: 'woorank.com',
+    ignoredQueryParams: ['ez_cid', 'gclid'],
   },
 ];
 

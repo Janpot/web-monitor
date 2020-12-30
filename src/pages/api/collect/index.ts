@@ -1,14 +1,23 @@
 import { NextApiHandler } from 'next';
-import { SerializedPageMetrics } from '../../../types';
+import { Property, SerializedPageMetrics } from '../../../types';
 import { getProperty } from '../../../lib/database';
 import { addMetric } from '../../../lib/metrics';
 import DeviceDetector from 'device-detector-js';
 
 const deviceDetector = new DeviceDetector();
 
+function parseUrl(property: Property, input: string): URL {
+  const url = new URL(input);
+  for (const param of property.ignoredQueryParams) {
+    url.searchParams.delete(param);
+  }
+  url.searchParams.sort();
+  return url;
+}
+
 export default (async (req, res) => {
   // TODO: parse properly
-  const event = JSON.parse(req.body) as SerializedPageMetrics;
+  const { url, ...event } = JSON.parse(req.body) as SerializedPageMetrics;
 
   const property = await getProperty(event.property);
 
@@ -17,10 +26,10 @@ export default (async (req, res) => {
     return res.status(403).end();
   }
 
-  const url = new URL(event.url);
+  const { protocol, href, host } = parseUrl(property, url);
 
-  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-    console.warn(`Invalid url ${event.url}`);
+  if (protocol !== 'http:' && protocol !== 'https:') {
+    console.warn(`Invalid url ${url}`);
     return res.status(403).end();
   }
 
@@ -34,9 +43,10 @@ export default (async (req, res) => {
   await addMetric({
     browser: detected.client?.name,
     device: detected.device?.type,
-    protocol: url.protocol,
-    host: url.host,
-    pathname: url.pathname,
+    location: {
+      href,
+      host,
+    },
     ...event,
   });
 

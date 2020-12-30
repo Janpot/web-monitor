@@ -50,11 +50,14 @@ async function initialize() {
       property: { type: 'keyword' },
       browser: { type: 'keyword' },
       device: { type: 'keyword' },
+      connection: { type: 'keyword' },
       location: {
         properties: {
           href: { type: 'keyword' },
-          protocol: { type: 'keyword' },
           host: { type: 'keyword' },
+          // deprecated, didn't need this
+          protocol: { type: 'keyword' },
+          // deprecated, didn't need this
           pathname: { type: 'keyword' },
         },
       },
@@ -102,34 +105,30 @@ async function ensureInitialized() {
   await initPromise;
 }
 
+export interface Location {
+  href: string;
+  host: string;
+}
+
 export interface SerializedPageServerMetrics {
   browser?: string;
   device?: string;
-  protocol: string;
-  host: string;
-  pathname: string;
+  location: Location;
 }
 
 export async function addMetric(
-  metric: SerializedPageMetrics & SerializedPageServerMetrics
+  metric: Omit<SerializedPageMetrics, 'url'> & SerializedPageServerMetrics
 ): Promise<void> {
   await ensureInitialized();
 
-  const { offset, url, protocol, host, pathname, ...event } = metric;
-  const location = {
-    href: url,
-    protocol,
-    host,
-    pathname,
-  };
+  const { offset, ...event } = metric;
 
   const eventTimestamp = Date.now() + offset;
   await client.index({
     index: `${process.env.INDEX_PREFIX}-pagemetrics`,
     body: {
       '@timestamp': new Date(eventTimestamp).toISOString(),
-      ...event,
-      location,
+      ...event
     },
   });
 }

@@ -1,6 +1,7 @@
 export interface SerializedPageMetrics {
   property: string;
   url: string;
+  connection?: string;
   offset: number;
   CLS?: number;
   FCP?: number;
@@ -12,6 +13,7 @@ export interface SerializedPageMetrics {
 export interface Property {
   id: string;
   name: string;
+  ignoredQueryParams: string[];
 }
 
 export type WebVitalsMetric = 'FCP' | 'LCP' | 'FID' | 'TTFB' | 'CLS';
