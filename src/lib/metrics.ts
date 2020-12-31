@@ -360,30 +360,65 @@ export async function getWebVitalsPages(
   return response.body.aggregations;
 }
 
-export async function getVisitorsOverview(property: string) {
+interface VisitorsOverviewMetrics {
+  pageviews: number;
+  sessions: number;
+  duration: number;
+  bounceRate: number;
+}
+
+interface VisitorsOverviewHistogramBucket extends VisitorsOverviewMetrics {
+  timestamp: number;
+}
+
+export interface VisitorsOverviewData extends VisitorsOverviewMetrics {
+  histogram: VisitorsOverviewHistogramBucket[];
+}
+
+function mapVisitorsOverviewAggregations(agg: any): VisitorsOverviewMetrics {
+  const sessions = agg.session_count.value;
+  const unouncedSessions = agg.returning_pageviews.unique_sessions.value;
+  const bouncedSessions = sessions - unouncedSessions;
+  return {
+    pageviews: agg.pageview_count.value,
+    sessions,
+    duration: agg.avg_visible.value,
+    bounceRate: bouncedSessions / sessions,
+  };
+}
+
+export async function getVisitorsOverview(
+  property: string
+): Promise<VisitorsOverviewData> {
   const end = Date.now();
   const start = end - 1000 * 60 * 60 * 24 * 7;
+  const aggregations = {
+    session_count: {
+      cardinality: { field: 'session' },
+    },
+    pageview_count: {
+      value_count: { field: 'session' },
+    },
+    avg_visible: {
+      avg: { field: 'visible' },
+    },
+    returning_pageviews: {
+      filter: { term: { isNewSession: false } },
+      aggs: {
+        unique_sessions: {
+          cardinality: { field: 'session' },
+        },
+      },
+    },
+  };
+
   const response = await client.search({
     index: `${process.env.INDEX_PREFIX}-pagemetrics`,
     body: {
       query: makeEsQuery({ start, end, property }),
       size: 0,
       aggs: {
-        session_count: {
-          cardinality: {
-            field: 'session',
-          },
-        },
-        pageview_count: {
-          value_count: {
-            field: 'session',
-          },
-        },
-        avg_visible: {
-          avg: {
-            field: 'visible',
-          },
-        },
+        ...aggregations,
         histogram: {
           date_histogram: {
             field: '@timestamp',
@@ -394,26 +429,19 @@ export async function getVisitorsOverview(property: string) {
               max: new Date(end).toISOString(),
             },
           },
-          aggs: {
-            session_count: {
-              cardinality: {
-                field: 'session',
-              },
-            },
-            pageview_count: {
-              value_count: {
-                field: 'session',
-              },
-            },
-            avg_visible: {
-              avg: {
-                field: 'visible',
-              },
-            },
-          },
+          aggs: aggregations,
         },
       },
     },
   });
-  return response.body.aggregations;
+
+  return {
+    ...mapVisitorsOverviewAggregations(response.body.aggregations),
+    histogram: response.body.aggregations.histogram.buckets.map(
+      (bucket: any) => ({
+        timestamp: bucket.key,
+        ...mapVisitorsOverviewAggregations(bucket),
+      })
+    ),
+  };
 }

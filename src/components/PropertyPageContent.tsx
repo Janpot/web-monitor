@@ -374,6 +374,15 @@ export default function PropertyPageContent({ id }: PropertyProps) {
       <Typography variant="h2">
         {property ? property.name : <Skeleton width={260} />}
       </Typography>
+      <Toolbar disableGutters>
+        {property && (
+          <>
+            <Link href={`/property/${property.id}/visitors`}>visitors</Link>
+            <span style={{ margin: '0 8px' }}>|</span>
+            <Link href={`/property/${property.id}/web-vitals`}>web vitals</Link>
+          </>
+        )}
+      </Toolbar>
       <Box my={3}>
         <Toolbar disableGutters>
           <Select
