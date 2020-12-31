@@ -3,6 +3,7 @@ import { Property, SerializedPageMetrics } from '../../../types';
 import { getProperty } from '../../../lib/database';
 import { addMetric } from '../../../lib/metrics';
 import DeviceDetector from 'device-detector-js';
+import { getValue } from '../../../lib/querystring';
 
 const deviceDetector = new DeviceDetector();
 
@@ -40,9 +41,13 @@ export default (async (req, res) => {
     return res.status(403).end();
   }
 
+  const ip =
+    getValue(req.headers, 'x-forwarded-for') || req.connection.remoteAddress;
+
   await addMetric({
     browser: detected.client?.name,
     device: detected.device?.type,
+    ip,
     location: {
       href,
       host,

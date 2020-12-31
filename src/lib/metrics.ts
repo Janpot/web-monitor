@@ -55,6 +55,8 @@ async function initialize() {
       browser: { type: 'keyword' },
       device: { type: 'keyword' },
       connection: { type: 'keyword' },
+      ip: { type: 'keyword' },
+      referrer: { type: 'keyword' },
       location: {
         properties: {
           href: { type: 'keyword' },
@@ -73,6 +75,7 @@ async function initialize() {
       host: { type: 'text' },
       // deprecated, we really didn't need text search here
       pathname: { type: 'text' },
+      visible: { type: 'double' },
       CLS: { type: 'double' },
       FCP: { type: 'double' },
       FID: { type: 'double' },
@@ -118,6 +121,7 @@ export interface SerializedPageServerMetrics {
   browser?: string;
   device?: string;
   location: Location;
+  ip?: string;
 }
 
 export async function addMetric(
