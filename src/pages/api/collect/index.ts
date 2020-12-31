@@ -1,4 +1,4 @@
-import { NextApiHandler } from 'next';
+import { NextApiHandler, NextApiRequest } from 'next';
 import { Property, SerializedPageMetrics } from '../../../types';
 import { getProperty } from '../../../lib/database';
 import { addMetric, getSession } from '../../../lib/metrics';
@@ -15,6 +15,12 @@ function parseUrl(property: Property, input: string): URL {
   }
   url.searchParams.sort();
   return url;
+}
+
+function getIpAddress(req: NextApiRequest): string | undefined {
+  return (
+    getValue(req.headers, 'x-forwarded-for') || req.connection.remoteAddress
+  );
 }
 
 export default (async (req, res) => {
@@ -46,11 +52,10 @@ export default (async (req, res) => {
 
   const timestamp = Date.now() + offset;
 
-  const ip =
-    getValue(req.headers, 'x-forwarded-for') || req.connection.remoteAddress;
+  const ip = getIpAddress(req);
 
-  const session: string =
-    (ip && (await getSession(property.id, ip, timestamp))) || uuid.v1();
+  const existingSession = ip && (await getSession(property.id, ip, timestamp));
+  const session: string = existingSession || uuid.v1();
 
   await addMetric({
     browser: detected.client?.name,
@@ -58,6 +63,7 @@ export default (async (req, res) => {
     timestamp,
     ip,
     session,
+    isNewSession: !existingSession,
     location: {
       href,
       host,

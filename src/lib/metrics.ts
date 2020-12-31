@@ -63,6 +63,7 @@ async function initialize() {
       connection: { type: 'keyword' },
       ip: { type: 'keyword' },
       session: { type: 'keyword' },
+      isNewSession: { type: 'boolean' },
       referrer: { type: 'keyword' },
       location: {
         properties: {
@@ -131,6 +132,7 @@ export interface SerializedPageServerMetrics {
   location: Location;
   ip?: string;
   session: string;
+  isNewSession: boolean;
 }
 
 export async function getSession(
@@ -159,7 +161,7 @@ export async function getSession(
               range: {
                 '@timestamp': {
                   gte: new Date(timestamp - SESSION_LIFETIME).toISOString(),
-                  lte: new Date(timestamp).toISOString(),
+                  lte: new Date(timestamp + SESSION_LIFETIME).toISOString(),
                   format: 'strict_date_optional_time',
                 },
               },
@@ -367,14 +369,14 @@ export async function getVisitorsOverview(property: string) {
       query: makeEsQuery({ start, end, property }),
       size: 0,
       aggs: {
-        visitor_count: {
+        session_count: {
           cardinality: {
-            field: 'ip',
+            field: 'session',
           },
         },
         pageview_count: {
           value_count: {
-            field: 'ip',
+            field: 'session',
           },
         },
         avg_visible: {
@@ -393,14 +395,14 @@ export async function getVisitorsOverview(property: string) {
             },
           },
           aggs: {
-            visitor_count: {
+            session_count: {
               cardinality: {
-                field: 'ip',
+                field: 'session',
               },
             },
             pageview_count: {
               value_count: {
-                field: 'ip',
+                field: 'session',
               },
             },
             avg_visible: {
