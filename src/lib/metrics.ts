@@ -5,6 +5,12 @@ import {
   WebVitalsMetric,
 } from '../types';
 
+/**
+ * Time (in ms) after which a user's session expires if no new visits
+ * for their IP are recorded
+ */
+const SESSION_LIFETIME = 1000 * 60 * 30;
+
 if (!process.env.ELASTICSEARCH_NODE) {
   throw new Error('Missing env variable "ELASTICSEARCH_NODE"');
 } else if (!process.env.INDEX_PREFIX) {
@@ -98,7 +104,7 @@ async function initialize() {
       },
     },
   });
-  // update mappiong for existing indices
+  // update mapping for existing indices
   await client.indices.putMapping({
     index: `${process.env.INDEX_PREFIX}-pagemetrics`,
     body: mapping,
@@ -119,6 +125,7 @@ export interface Location {
 }
 
 export interface SerializedPageServerMetrics {
+  timestamp: number;
   browser?: string;
   device?: string;
   location: Location;
@@ -128,9 +135,9 @@ export interface SerializedPageServerMetrics {
 
 export async function getSession(
   property: string,
-  ip: string
+  ip: string,
+  timestamp = Date.now()
 ): Promise<string | undefined> {
-  const start = Date.now() - 1000 * 60 * 30;
   const { body } = await client.search({
     index: `${process.env.INDEX_PREFIX}-pagemetrics`,
     body: {
@@ -151,7 +158,8 @@ export async function getSession(
             {
               range: {
                 '@timestamp': {
-                  gte: new Date(start).toISOString(),
+                  gte: new Date(timestamp - SESSION_LIFETIME).toISOString(),
+                  lte: new Date(timestamp).toISOString(),
                   format: 'strict_date_optional_time',
                 },
               },
@@ -169,17 +177,17 @@ export async function getSession(
 }
 
 export async function addMetric(
-  metric: Omit<SerializedPageMetrics, 'url'> & SerializedPageServerMetrics
+  metric: Omit<SerializedPageMetrics, 'url' | 'offset'> &
+    SerializedPageServerMetrics
 ): Promise<void> {
   await ensureInitialized();
 
-  const { offset, ...event } = metric;
+  const { timestamp, ...event } = metric;
 
-  const eventTimestamp = Date.now() + offset;
   await client.index({
     index: `${process.env.INDEX_PREFIX}-pagemetrics`,
     body: {
-      '@timestamp': new Date(eventTimestamp).toISOString(),
+      '@timestamp': timestamp,
       ...event,
     },
   });

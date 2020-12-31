@@ -19,7 +19,9 @@ function parseUrl(property: Property, input: string): URL {
 
 export default (async (req, res) => {
   // TODO: parse properly
-  const { url, ...event } = JSON.parse(req.body) as SerializedPageMetrics;
+  const { url, offset, ...event } = JSON.parse(
+    req.body
+  ) as SerializedPageMetrics;
 
   const property = await getProperty(event.property);
 
@@ -42,15 +44,18 @@ export default (async (req, res) => {
     return res.status(403).end();
   }
 
+  const timestamp = Date.now() + offset;
+
   const ip =
     getValue(req.headers, 'x-forwarded-for') || req.connection.remoteAddress;
 
   const session: string =
-    (ip && (await getSession(property.id, ip))) || uuid.v1();
+    (ip && (await getSession(property.id, ip, timestamp))) || uuid.v1();
 
   await addMetric({
     browser: detected.client?.name,
     device: detected.device?.type,
+    timestamp,
     ip,
     session,
     location: {
