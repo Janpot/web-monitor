@@ -1,9 +1,10 @@
 import { NextApiHandler } from 'next';
 import { Property, SerializedPageMetrics } from '../../../types';
 import { getProperty } from '../../../lib/database';
-import { addMetric } from '../../../lib/metrics';
+import { addMetric, getSession } from '../../../lib/metrics';
 import DeviceDetector from 'device-detector-js';
 import { getValue } from '../../../lib/querystring';
+import * as uuid from 'uuid';
 
 const deviceDetector = new DeviceDetector();
 
@@ -44,10 +45,14 @@ export default (async (req, res) => {
   const ip =
     getValue(req.headers, 'x-forwarded-for') || req.connection.remoteAddress;
 
+  const session: string =
+    (ip && (await getSession(property.id, ip))) || uuid.v1();
+
   await addMetric({
     browser: detected.client?.name,
     device: detected.device?.type,
     ip,
+    session,
     location: {
       href,
       host,

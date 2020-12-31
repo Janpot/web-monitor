@@ -26,6 +26,7 @@
     "react-dom": "17.0.1",
     "recharts": "^1.8.5",
     "swr": "^0.3.11",
+    "uuid": "^8.3.2",
     "web-vitals": "^1.0.1"
   },
   "devDependencies": {
@@ -40,6 +41,7 @@
     "@types/react": "^17.0.0",
     "@types/recharts": "^1.8.18",
     "@types/ua-parser-js": "^0.7.35",
+    "@types/uuid": "^8.3.0",
     "concurrently": "^5.3.0",
     "dotenv": "^8.2.0",
     "prettier": "^2.2.1",

@@ -56,6 +56,7 @@ async function initialize() {
       device: { type: 'keyword' },
       connection: { type: 'keyword' },
       ip: { type: 'keyword' },
+      session: { type: 'keyword' },
       referrer: { type: 'keyword' },
       location: {
         properties: {
@@ -122,6 +123,49 @@ export interface SerializedPageServerMetrics {
   device?: string;
   location: Location;
   ip?: string;
+  session: string;
+}
+
+export async function getSession(
+  property: string,
+  ip: string
+): Promise<string | undefined> {
+  const start = Date.now() - 1000 * 60 * 30;
+  const { body } = await client.search({
+    index: `${process.env.INDEX_PREFIX}-pagemetrics`,
+    body: {
+      size: 1,
+      query: {
+        bool: {
+          filter: [
+            {
+              term: {
+                property: { value: property },
+              },
+            },
+            {
+              term: {
+                ip: { value: ip },
+              },
+            },
+            {
+              range: {
+                '@timestamp': {
+                  gte: new Date(start).toISOString(),
+                  format: 'strict_date_optional_time',
+                },
+              },
+            },
+          ],
+        },
+      },
+      docvalue_fields: ['session'],
+      _source: false,
+    },
+  });
+  return body.hits.hits.length > 0
+    ? body.hits.hits[0].fields.session[0]
+    : undefined;
 }
 
 export async function addMetric(
@@ -171,7 +215,7 @@ interface MakeEsQueryOptions {
   start: number;
   end: number;
   property: string;
-  device: WebVitalsDevice;
+  device?: WebVitalsDevice;
 }
 
 function makeEsQuery({ start, end, property, device }: MakeEsQueryOptions) {
@@ -298,6 +342,64 @@ export async function getWebVitalsPages(
             FID_percentiles: percentiles('FID'),
             TTFB_percentiles: percentiles('TTFB'),
             CLS_percentiles: percentiles('CLS'),
+          },
+        },
+      },
+    },
+  });
+  return response.body.aggregations;
+}
+
+export async function getVisitorsOverview(property: string) {
+  const end = Date.now();
+  const start = end - 1000 * 60 * 60 * 24 * 7;
+  const response = await client.search({
+    index: `${process.env.INDEX_PREFIX}-pagemetrics`,
+    body: {
+      query: makeEsQuery({ start, end, property }),
+      size: 0,
+      aggs: {
+        visitor_count: {
+          cardinality: {
+            field: 'ip',
+          },
+        },
+        pageview_count: {
+          value_count: {
+            field: 'ip',
+          },
+        },
+        avg_visible: {
+          avg: {
+            field: 'visible',
+          },
+        },
+        histogram: {
+          date_histogram: {
+            field: '@timestamp',
+            calendar_interval: '1d',
+            min_doc_count: 0, // adds missing buckets
+            extended_bounds: {
+              min: new Date(start).toISOString(),
+              max: new Date(end).toISOString(),
+            },
+          },
+          aggs: {
+            visitor_count: {
+              cardinality: {
+                field: 'ip',
+              },
+            },
+            pageview_count: {
+              value_count: {
+                field: 'ip',
+              },
+            },
+            avg_visible: {
+              avg: {
+                field: 'visible',
+              },
+            },
           },
         },
       },

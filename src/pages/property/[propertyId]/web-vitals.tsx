@@ -1,6 +1,6 @@
 import * as React from 'react';
-import PropertyPageContent from '../../components/PropertyPageContent';
-import Layout from '../../components/Layout';
+import PropertyPageContent from '../../../components/PropertyPageContent';
+import Layout from '../../../components/Layout';
 import { useRouter } from 'next/dist/client/router';
 import { Container } from '@material-ui/core';
 
