@@ -1,8 +1,10 @@
 export interface SerializedPageMetrics {
   property: string;
   url: string;
+  referrer?: string;
   connection?: string;
   offset: number;
+  visible: number;
   CLS?: number;
   FCP?: number;
   FID?: number;

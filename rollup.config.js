@@ -10,12 +10,20 @@ dotenv.config({ path: path.resolve(__dirname, '.env.local') });
 const isDev = process.env.NODE_ENV === 'development';
 
 export default {
-  input: 'tag/analytics.ts',
-  output: {
-    file: 'public/analytics.js',
-    format: 'iife',
-    sourcemap: true,
-  },
+  input: 'tag/index.ts',
+  output: [
+    {
+      // legacy
+      file: 'public/analytics.js',
+      format: 'iife',
+      sourcemap: true,
+    },
+    {
+      file: 'public/tag.js',
+      format: 'iife',
+      sourcemap: true,
+    },
+  ],
   plugins: [
     babel({
       extensions: ['.js', '.jsx', '.ts', '.tsx'],

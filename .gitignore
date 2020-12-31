@@ -34,3 +34,5 @@ yarn-error.log*
 .vercel
 /public/analytics.js
 /public/analytics.js.map
+/public/tag.js
+/public/tag.js.map
