@@ -15,11 +15,9 @@ import {
   Box,
   FormControlLabel,
   MenuItem,
-  Paper,
   Radio,
   RadioGroup,
   Select,
-  Toolbar,
   Typography,
   useTheme,
   Grid,
@@ -31,11 +29,13 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Container,
 } from '@material-ui/core';
 import { Property, WebVitalsDevice, WebVitalsMetric } from '../types';
 import Link from './Link';
 import clsx from 'clsx';
-import PropertyShell from './PropertyShell';
+import PropertyToolbar from './PropertyToolbar';
+import Layout from './Layout';
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -52,17 +52,26 @@ const useStyles = makeStyles((theme) =>
       flexDirection: 'column',
       alignItems: 'center',
       padding: theme.spacing(2),
-      borderBottom: '1px solid white',
       fontSize: 24,
       cursor: 'pointer',
       '&$active': {
-        border: '1px solid white',
-        borderBottom: 'none',
+        borderRadius: [
+          [theme.shape.borderRadius, theme.shape.borderRadius, 0, 0],
+        ],
+        background: theme.palette.background.paper,
+        boxShadow: theme.shadows[4],
+        clipPath: `inset(-5px -5px 0px -5px)`,
       },
     },
     webVitalTabs: {
       display: 'flex',
       flexDirection: 'row',
+    },
+    webVitalTabContent: {
+      padding: theme.spacing(5, 2, 2, 2),
+      background: theme.palette.background.paper,
+      borderRadius: theme.shape.borderRadius,
+      boxShadow: theme.shadows[4],
     },
   })
 );
@@ -218,13 +227,7 @@ function WebVitalsOverview({
         { key: Date.now(), value: null },
       ];
 
-  return (
-    <Paper>
-      <Box p={2}>
-        <WebVitalOverviewChart name={metric} histogram={histogram} />
-      </Box>
-    </Paper>
-  );
+  return <WebVitalOverviewChart name={metric} histogram={histogram} />;
 }
 
 interface WebVitalsPagesProps {
@@ -248,7 +251,7 @@ function columnValue(
 
 function WebVitalsPages({ data, percentile, metric }: WebVitalsPagesProps) {
   return (
-    <Paper>
+    <>
       <Box p={2}>
         <Typography variant="h6">By page</Typography>
       </Box>
@@ -274,7 +277,7 @@ function WebVitalsPages({ data, percentile, metric }: WebVitalsPagesProps) {
           </TableBody>
         </Table>
       </TableContainer>
-    </Paper>
+    </>
   );
 }
 
@@ -336,26 +339,36 @@ function WebVitalsTabs({
 }
 
 interface PropertyProps {
-  id: string;
+  propertyId?: string;
 }
 
-export default function PropertyPageContent({ id }: PropertyProps) {
+export default function PropertyPageContent({ propertyId }: PropertyProps) {
   const classes = useStyles();
   const [percentile, setPercentile] = React.useState<Percentile>('75.0');
   const [device, setDevice] = React.useState<WebVitalsDevice>('mobile');
   const [activeTab, setActiveTab] = React.useState<WebVitalsMetric>('FCP');
-  const { data: property } = useSWR<Property>(`/api/data/${id}`);
+
+  const { data: property } = useSWR<Property>(
+    propertyId ? `/api/data/${propertyId}` : null
+  );
   const { data: overviewData } = useSWR<ChartData>(
-    `/api/data/${id}/web-vitals-overview?device=${encodeURIComponent(device)}`
+    propertyId
+      ? `/api/data/${propertyId}/web-vitals-overview?device=${encodeURIComponent(
+          device
+        )}`
+      : null
   );
   const { data: pagesData } = useSWR<WebVitalsPagesData>(
-    `/api/data/${id}/web-vitals-pages?device=${encodeURIComponent(device)}`
+    propertyId
+      ? `/api/data/${propertyId}/web-vitals-pages?device=${encodeURIComponent(
+          device
+        )}`
+      : null
   );
   return (
-    <PropertyShell property={property} active="webVitals">
-      <Box my={3}>
-        <Toolbar disableGutters>
-          <Box flex={1} />
+    <Layout activeTab="webVitals" property={property}>
+      <Container>
+        <PropertyToolbar property={property}>
           <Select
             className={classes.toolbarControl}
             variant="outlined"
@@ -383,40 +396,42 @@ export default function PropertyPageContent({ id }: PropertyProps) {
               label="Desktop"
             />
           </RadioGroup>
-        </Toolbar>
-      </Box>
-      <WebVitalsTabs
-        data={overviewData}
-        percentile={percentile}
-        value={activeTab}
-        onChange={setActiveTab}
-      />
-      <Box mt={5}>
-        <Grid container spacing={4}>
-          <Grid item xs={12}>
-            <Typography variant="h6">{METRICS[activeTab].title}</Typography>
-            <Typography>
-              {METRICS[activeTab].description}{' '}
-              <Link href={METRICS[activeTab].link}>More info</Link>
-            </Typography>
-          </Grid>
+        </PropertyToolbar>
+        <Box my={3}>
+          <WebVitalsTabs
+            data={overviewData}
+            percentile={percentile}
+            value={activeTab}
+            onChange={setActiveTab}
+          />
+          <div className={classes.webVitalTabContent}>
+            <Grid container spacing={4}>
+              <Grid item xs={12}>
+                <Typography variant="h6">{METRICS[activeTab].title}</Typography>
+                <Typography>
+                  {METRICS[activeTab].description}{' '}
+                  <Link href={METRICS[activeTab].link}>More info</Link>
+                </Typography>
+              </Grid>
 
-          <Grid item xs={12}>
-            <WebVitalsOverview
-              data={overviewData}
-              metric={activeTab}
-              percentile={percentile}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <WebVitalsPages
-              data={pagesData}
-              metric={activeTab}
-              percentile={percentile}
-            />
-          </Grid>
-        </Grid>
-      </Box>
-    </PropertyShell>
+              <Grid item xs={12}>
+                <WebVitalsOverview
+                  data={overviewData}
+                  metric={activeTab}
+                  percentile={percentile}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <WebVitalsPages
+                  data={pagesData}
+                  metric={activeTab}
+                  percentile={percentile}
+                />
+              </Grid>
+            </Grid>
+          </div>
+        </Box>
+      </Container>
+    </Layout>
   );
 }

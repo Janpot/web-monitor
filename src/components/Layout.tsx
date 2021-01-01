@@ -11,14 +11,19 @@ import {
   MenuItem,
   Typography,
   CircularProgress,
+  Tab,
+  Tabs,
 } from '@material-ui/core';
-import Link from './Link';
+import Link, { Anchor } from './Link';
+import { Property } from '../types';
 
 export interface LayoutProps {
+  activeTab?: 'visitors' | 'webVitals';
+  property?: Property;
   children?: React.ReactNode;
 }
 
-export default function Layout({ children }: LayoutProps) {
+export default function Layout({ property, children, activeTab }: LayoutProps) {
   const [session, loading] = useSession();
 
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
@@ -42,6 +47,27 @@ export default function Layout({ children }: LayoutProps) {
     <>
       <Container>
         <Toolbar disableGutters>
+          {property && (
+            <>
+              <Tabs value={activeTab}>
+                <Tab
+                  value="visitors"
+                  component={Anchor}
+                  disabled={!property}
+                  href={property ? `/property/${property.id}/visitors` : '/'}
+                  label="Visitors"
+                />
+                <Tab
+                  value="webVitals"
+                  component={Anchor}
+                  disabled={!property}
+                  href={property ? `/property/${property.id}/web-vitals` : '/'}
+                  label="Web Vitals"
+                />
+              </Tabs>
+            </>
+          )}
+          <Box flex={1} />
           <Link href="/">
             <Typography variant="h6">Web Monitor</Typography>
           </Link>

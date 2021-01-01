@@ -20,10 +20,12 @@ import {
   makeStyles,
   createStyles,
   lighten,
+  Container,
 } from '@material-ui/core';
 import { Property } from '../types';
 import clsx from 'clsx';
-import PropertyShell from './PropertyShell';
+import PropertyToolbar from './PropertyToolbar';
+import Layout from './Layout';
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -232,23 +234,28 @@ function WebVitalsOverview({ data }: WebVitalsOverviewProps) {
 }
 
 interface PropertyProps {
-  id: string;
+  propertyId?: string;
 }
 
-export default function PropertyPageContent({ id }: PropertyProps) {
-  const { data: property } = useSWR<Property>(`/api/data/${id}`);
+export default function PropertyPageContent({ propertyId }: PropertyProps) {
+  const { data: property } = useSWR<Property>(
+    propertyId ? `/api/data/${propertyId}` : null
+  );
   const { data: overviewData } = useSWR<VisitorsOverviewData>(
-    `/api/data/${id}/visitors-overview`
+    propertyId ? `/api/data/${propertyId}/visitors-overview` : null
   );
   return (
-    <PropertyShell property={property} active="visitors">
-      <Box mt={4}>
-        <Grid container spacing={4}>
-          <Grid item xs={12}>
-            <WebVitalsOverview data={overviewData} />
+    <Layout activeTab="visitors" property={property}>
+      <Container>
+        <PropertyToolbar property={property}></PropertyToolbar>
+        <Box mt={4}>
+          <Grid container spacing={4}>
+            <Grid item xs={12}>
+              <WebVitalsOverview data={overviewData} />
+            </Grid>
           </Grid>
-        </Grid>
-      </Box>
-    </PropertyShell>
+        </Box>
+      </Container>
+    </Layout>
   );
 }
