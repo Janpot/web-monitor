@@ -10,66 +10,29 @@ import {
   YAxis,
   Tooltip,
 } from 'recharts';
-import {
-  Typography,
-  useTheme,
-  Grid,
-  makeStyles,
-  createStyles,
-  lighten,
-  Container,
-} from '@material-ui/core';
+import { Typography, useTheme, Grid, Container } from '@material-ui/core';
 import { Property } from '../types';
 import PropertyToolbar from './PropertyToolbar';
 import Layout from './Layout';
-import { PaperTab, PaperTabContent, PaperTabs } from './PaperTabs';
-
-const useStyles = makeStyles((theme) =>
-  createStyles({
-    toolbarControl: {
-      marginRight: theme.spacing(2),
-    },
-    active: {},
-    visitorsMetricTab: {
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      padding: theme.spacing(2),
-    },
-    metricValue: {
-      fontSize: 24,
-    },
-    webVitalsSummaries: {
-      background: theme.palette.grey[900],
-    },
-    webVitalSummary: {
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      width: 100,
-      padding: theme.spacing(2),
-      cursor: 'pointer',
-      '&$active, &$active:hover': {
-        cursor: 'unset',
-        background: theme.palette.background.paper,
-      },
-      '&:hover': {
-        background: lighten(theme.palette.grey[900], 0.05),
-      },
-    },
-  })
-);
+import { PaperTabContent, PaperTabs } from './PaperTabs';
+import MetricTab from './MetricTab';
 
 interface MetricDescriptor {
   title: string;
   description: string;
   link?: string;
   format: (value: number) => string;
-  unit?: 'ms' | 's';
+  unit?: 'ms' | 's' | '%';
   target?: number;
 }
 
-const numberFormat = new Intl.NumberFormat('en');
+const numberFormatCompact = new Intl.NumberFormat('en', {
+  notation: 'compact',
+  maximumFractionDigits: 2,
+});
+const numberFormatPercent = new Intl.NumberFormat('en', {
+  maximumFractionDigits: 1,
+});
 const numberFormatSeconds = new Intl.NumberFormat('en', {
   maximumFractionDigits: 2,
 });
@@ -77,24 +40,26 @@ const numberFormatSeconds = new Intl.NumberFormat('en', {
 const METRICS = {
   pageviews: {
     title: 'Pageviews',
-    description: 'measures how often a page was visited',
-    format: numberFormat.format,
+    description: 'Measures how often a page was visited.',
+    format: numberFormatCompact.format,
   } as MetricDescriptor,
   sessions: {
     title: 'Sessions',
-    description: 'Measures amount of unique sessions',
-    format: numberFormat.format,
+    description: 'Measures amount of unique sessions.',
+    format: numberFormatCompact.format,
   } as MetricDescriptor,
   duration: {
     title: 'Duration',
-    description: 'Measures how a long a page is viewed by the user on average',
+    description: 'Measures how a long a page is viewed by the user on average.',
     format: (value) => numberFormatSeconds.format(value / 1000),
     unit: 's',
   } as MetricDescriptor,
   bounceRate: {
-    title: 'Bounce rate',
-    description: 'measures the ratio of sessions with only a single page view',
-    format: numberFormat.format,
+    title: 'Bounce Rate',
+    description:
+      'Measures the ratio of sessions with only a single page view against all sessions.',
+    format: (value) => numberFormatPercent.format(value * 100),
+    unit: '%',
   } as MetricDescriptor,
 };
 
@@ -188,21 +153,20 @@ function VisitorsMetricTab({
   active,
   onClick,
 }: VisitorsMetricTabProps) {
-  const classes = useStyles();
   return (
-    <PaperTab
-      className={classes.visitorsMetricTab}
+    <MetricTab
+      title={METRICS[metric].title}
       onClick={onClick}
       active={active}
-    >
-      <div>{metric}</div>
-      <div className={classes.metricValue}>
-        {value === null ? '-' : METRICS[metric].format(value)}{' '}
-        {METRICS[metric].unit || ''}
-      </div>
-    </PaperTab>
+      value={
+        value === null
+          ? '-'
+          : `${METRICS[metric].format(value)} ${METRICS[metric].unit || ''}`
+      }
+    />
   );
 }
+
 interface PropertyProps {
   propertyId?: string;
 }

@@ -15,7 +15,7 @@ export default function PropertyToolbar({
   return (
     <Box mt={3} mb={6}>
       <Toolbar disableGutters>
-        <Typography variant="h2">
+        <Typography variant="h2" noWrap>
           {property ? property.name : <Skeleton width={260} />}
         </Typography>
         <Box flex={1} />

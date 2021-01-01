@@ -1,4 +1,4 @@
-import { makeStyles } from '@material-ui/core';
+import { darken, makeStyles } from '@material-ui/core';
 import createStyles from '@material-ui/core/styles/createStyles';
 import clsx from 'clsx';
 
@@ -8,14 +8,16 @@ const useStyles = makeStyles((theme) =>
     paperTab: {
       flex: 1,
       cursor: 'pointer',
-      '&$active': {
-        borderRadius: [
-          [theme.shape.borderRadius, theme.shape.borderRadius, 0, 0],
-        ],
+      borderTopLeftRadius: theme.shape.borderRadius,
+      borderTopRightRadius: theme.shape.borderRadius,
+      '&$active, &$active:hover': {
         background: theme.palette.background.paper,
         boxShadow: theme.shadows[4],
         clipPath: `inset(-5px -5px 0px -5px)`,
         cursor: 'unset',
+      },
+      '&:hover': {
+        background: darken(theme.palette.background.paper, 0.15),
       },
     },
     paperTabs: {
@@ -25,7 +27,8 @@ const useStyles = makeStyles((theme) =>
     paperTabContent: {
       padding: theme.spacing(5, 2, 2, 2),
       background: theme.palette.background.paper,
-      borderRadius: theme.shape.borderRadius,
+      borderBottomLeftRadius: theme.shape.borderRadius,
+      borderBottomRightRadius: theme.shape.borderRadius,
       boxShadow: theme.shadows[4],
     },
   })

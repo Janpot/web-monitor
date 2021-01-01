@@ -33,32 +33,15 @@ import {
 } from '@material-ui/core';
 import { Property, WebVitalsDevice, WebVitalsMetric } from '../types';
 import Link from './Link';
-import clsx from 'clsx';
 import PropertyToolbar from './PropertyToolbar';
 import Layout from './Layout';
-import { PaperTab, PaperTabContent, PaperTabs } from './PaperTabs';
+import { PaperTabContent, PaperTabs } from './PaperTabs';
+import MetricTab from './MetricTab';
 
 const useStyles = makeStyles((theme) =>
   createStyles({
     toolbarControl: {
       marginRight: theme.spacing(2),
-    },
-    bad: {},
-    webVitalsSummaries: {
-      background: theme.palette.grey[900],
-    },
-    webVitalTab: {
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      padding: theme.spacing(2),
-      color: theme.palette.success.main,
-      '&$bad': {
-        color: theme.palette.error.main,
-      },
-    },
-    metricValue: {
-      fontSize: 24,
     },
   })
 );
@@ -86,7 +69,7 @@ const METRICS = {
   FCP: {
     title: 'First Contentful Paint',
     description:
-      "measures the time from when the page starts loading to when any part of the page's content is rendered on the screen.",
+      "Measures the time from when the page starts loading to when any part of the page's content is rendered on the screen.",
     link: 'https://web.dev/fcp',
     format: (value) => numberFormatSeconds.format(value / 1000),
     unit: 's',
@@ -95,7 +78,7 @@ const METRICS = {
   LCP: {
     title: 'Largest Contentful Paint ',
     description:
-      'measures loading performance. To provide a good user experience, LCP should occur within 2.5 seconds of when the page first starts loading.',
+      'Measures loading performance. To provide a good user experience, LCP should occur within 2.5 seconds of when the page first starts loading.',
     link: 'https://web.dev/lcp',
     format: (value) => numberFormatSeconds.format(value / 1000),
     unit: 's',
@@ -104,7 +87,7 @@ const METRICS = {
   FID: {
     title: 'First Input Delay',
     description:
-      'measures interactivity. To provide a good user experience, pages should have a FID of less than 100 milliseconds.',
+      'Measures interactivity. To provide a good user experience, pages should have a FID of less than 100 milliseconds.',
     link: 'https://web.dev/fid',
     format: numberFormatMilliseconds.format,
     unit: 'ms',
@@ -113,7 +96,7 @@ const METRICS = {
   TTFB: {
     title: 'Time to First Byte',
     description:
-      "the time that it takes for a user's browser to receive the first byte of page content",
+      "The time that it takes for a user's browser to receive the first byte of page content.",
     link: 'https://web.dev/time-to-first-byte',
     format: numberFormatMilliseconds.format,
     unit: 'ms',
@@ -122,7 +105,7 @@ const METRICS = {
   CLS: {
     title: 'Cumulative Layout Shift',
     description:
-      'measures visual stability. To provide a good user experience, pages should maintain a CLS of less than 0.1.',
+      'Measures visual stability. To provide a good user experience, pages should maintain a CLS of less than 0.1.',
     link: 'https://web.dev/cls',
     format: numberFormat.format,
     target: 0.1,
@@ -274,21 +257,24 @@ interface WebVitalsTabProps {
 }
 
 function WebVitalsTab({ metric, value, active, onClick }: WebVitalsTabProps) {
-  const classes = useStyles();
   return (
-    <PaperTab
-      className={clsx(classes.webVitalTab, {
-        [classes.bad]: value && value > METRICS[metric].target,
-      })}
+    <MetricTab
+      title={METRICS[metric].title}
       onClick={onClick}
       active={active}
-    >
-      <div>{metric}</div>
-      <div className={classes.metricValue}>
-        {value === null ? '-' : METRICS[metric].format(value)}{' '}
-        {METRICS[metric].unit || ''}
-      </div>
-    </PaperTab>
+      severity={
+        value === null
+          ? null
+          : value > METRICS[metric].target
+          ? 'error'
+          : 'success'
+      }
+      value={
+        value === null
+          ? '-'
+          : `${METRICS[metric].format(value)} ${METRICS[metric].unit || ''}`
+      }
+    />
   );
 }
 
