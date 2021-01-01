@@ -20,12 +20,10 @@ import {
   makeStyles,
   createStyles,
   lighten,
-  Toolbar,
 } from '@material-ui/core';
 import { Property } from '../types';
-import { Skeleton } from '@material-ui/lab';
 import clsx from 'clsx';
-import Link from './Link';
+import PropertyShell from './PropertyShell';
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -243,24 +241,14 @@ export default function PropertyPageContent({ id }: PropertyProps) {
     `/api/data/${id}/visitors-overview`
   );
   return (
-    <>
-      <Typography variant="h2">
-        {property ? property.name : <Skeleton width={260} />}
-      </Typography>
-      <Toolbar disableGutters>
-        {property && (
-          <>
-            <Link href={`/property/${property.id}/visitors`}>visitors</Link>
-            <span style={{ margin: '0 8px' }}>|</span>
-            <Link href={`/property/${property.id}/web-vitals`}>web vitals</Link>
-          </>
-        )}
-      </Toolbar>
-      <Grid container spacing={4}>
-        <Grid item xs={12}>
-          <WebVitalsOverview data={overviewData} />
+    <PropertyShell property={property} active="visitors">
+      <Box mt={4}>
+        <Grid container spacing={4}>
+          <Grid item xs={12}>
+            <WebVitalsOverview data={overviewData} />
+          </Grid>
         </Grid>
-      </Grid>
-    </>
+      </Box>
+    </PropertyShell>
   );
 }

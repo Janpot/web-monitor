@@ -13,7 +13,6 @@ import {
 } from 'recharts';
 import {
   Box,
-  Divider,
   FormControlLabel,
   MenuItem,
   Paper,
@@ -26,7 +25,6 @@ import {
   Grid,
   makeStyles,
   createStyles,
-  lighten,
   Table,
   TableBody,
   TableCell,
@@ -36,8 +34,8 @@ import {
 } from '@material-ui/core';
 import { Property, WebVitalsDevice, WebVitalsMetric } from '../types';
 import Link from './Link';
-import { Skeleton } from '@material-ui/lab';
 import clsx from 'clsx';
+import PropertyShell from './PropertyShell';
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -48,20 +46,23 @@ const useStyles = makeStyles((theme) =>
     webVitalsSummaries: {
       background: theme.palette.grey[900],
     },
-    webVitalSummary: {
+    webVitalTab: {
+      flex: 1,
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      width: 100,
       padding: theme.spacing(2),
+      borderBottom: '1px solid white',
+      fontSize: 24,
       cursor: 'pointer',
-      '&$active, &$active:hover': {
-        cursor: 'unset',
-        background: theme.palette.background.paper,
+      '&$active': {
+        border: '1px solid white',
+        borderBottom: 'none',
       },
-      '&:hover': {
-        background: lighten(theme.palette.grey[900], 0.05),
-      },
+    },
+    webVitalTabs: {
+      display: 'flex',
+      flexDirection: 'row',
     },
   })
 );
@@ -196,93 +197,31 @@ function WebVitalOverviewChart({
   );
 }
 
-interface WebVitalSummaryProps {
-  name: WebVitalsMetric;
-  value: number | null;
-  active?: boolean;
-  onClick: () => void;
-}
-
-function WebVitalOverviewSummary({
-  name,
-  value,
-  active,
-  onClick,
-}: WebVitalSummaryProps) {
-  const classes = useStyles();
-  return (
-    <div
-      className={clsx(classes.webVitalSummary, { [classes.active]: active })}
-      onClick={onClick}
-    >
-      <div>{name}</div>
-      <div>
-        {value === null ? '-' : METRICS[name].format(value)}{' '}
-        {METRICS[name].unit || ''}
-      </div>
-    </div>
-  );
-}
-
 interface WebVitalsOverviewProps {
   data?: ChartData;
+  metric: WebVitalsMetric;
   percentile: Percentile;
 }
 
-function WebVitalsOverview({ data, percentile }: WebVitalsOverviewProps) {
-  const classes = useStyles();
-  const [activeMetric, setActiveMetric] = React.useState<WebVitalsMetric>(
-    'FCP'
-  );
-
+function WebVitalsOverview({
+  data,
+  percentile,
+  metric,
+}: WebVitalsOverviewProps) {
   const histogram = data
     ? data.histogram.buckets.map((bucket) => ({
         key: bucket.key,
-        value:
-          bucket[`${activeMetric}_percentiles` as const].values[percentile],
+        value: bucket[`${metric}_percentiles` as const].values[percentile],
       }))
     : [
         { key: Date.now() - 7 * 24 * 60 * 60 * 1000, value: null },
         { key: Date.now(), value: null },
       ];
 
-  const summaryProps = (name: WebVitalsMetric) => ({
-    name,
-    active: activeMetric === name,
-    onClick: () => setActiveMetric(name),
-    value: data
-      ? data[`${name}_percentiles` as const].values[percentile]
-      : null,
-  });
-
   return (
     <Paper>
-      <Box display="flex" flexDirection="row">
-        <Box
-          display="flex"
-          flexDirection="column"
-          className={classes.webVitalsSummaries}
-        >
-          <WebVitalOverviewSummary {...summaryProps('FCP')} />
-          <Divider flexItem />
-          <WebVitalOverviewSummary {...summaryProps('LCP')} />
-          <Divider flexItem />
-          <WebVitalOverviewSummary {...summaryProps('FID')} />
-          <Divider flexItem />
-          <WebVitalOverviewSummary {...summaryProps('TTFB')} />
-          <Divider flexItem />
-          <WebVitalOverviewSummary {...summaryProps('CLS')} />
-        </Box>
-        <Box p={3} flex={1} width={0}>
-          <Typography variant="h6">{METRICS[activeMetric].title}</Typography>
-          <Typography>
-            {METRICS[activeMetric].description}{' '}
-            <Link href={METRICS[activeMetric].link}>More info</Link>
-          </Typography>
-          <Box mt={5}>
-            <WebVitalOverviewChart name={activeMetric} histogram={histogram} />
-          </Box>
-        </Box>
+      <Box p={2}>
+        <WebVitalOverviewChart name={metric} histogram={histogram} />
       </Box>
     </Paper>
   );
@@ -290,6 +229,7 @@ function WebVitalsOverview({ data, percentile }: WebVitalsOverviewProps) {
 
 interface WebVitalsPagesProps {
   data?: WebVitalsPagesData;
+  metric: WebVitalsMetric;
   percentile: Percentile;
 }
 
@@ -306,7 +246,7 @@ function columnValue(
   return value ? METRICS[name].format(value) : '-';
 }
 
-function WebVitalsPages({ data, percentile }: WebVitalsPagesProps) {
+function WebVitalsPages({ data, percentile, metric }: WebVitalsPagesProps) {
   return (
     <Paper>
       <Box p={2}>
@@ -317,11 +257,7 @@ function WebVitalsPages({ data, percentile }: WebVitalsPagesProps) {
           <TableHead>
             <TableRow>
               <TableCell>Url</TableCell>
-              <TableCell align="right">{columnHeader('FCP')}</TableCell>
-              <TableCell align="right">{columnHeader('LCP')}</TableCell>
-              <TableCell align="right">{columnHeader('FID')}</TableCell>
-              <TableCell align="right">{columnHeader('TTFB')}</TableCell>
-              <TableCell align="right">{columnHeader('CLS')}</TableCell>
+              <TableCell align="right">{columnHeader(metric)}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -331,19 +267,7 @@ function WebVitalsPages({ data, percentile }: WebVitalsPagesProps) {
                   {bucket.key}
                 </TableCell>
                 <TableCell align="right">
-                  {columnValue('FCP', percentile, bucket)}
-                </TableCell>
-                <TableCell align="right">
-                  {columnValue('LCP', percentile, bucket)}
-                </TableCell>
-                <TableCell align="right">
-                  {columnValue('FID', percentile, bucket)}
-                </TableCell>
-                <TableCell align="right">
-                  {columnValue('TTFB', percentile, bucket)}
-                </TableCell>
-                <TableCell align="right">
-                  {columnValue('CLS', percentile, bucket)}
+                  {columnValue(metric, percentile, bucket)}
                 </TableCell>
               </TableRow>
             ))}
@@ -351,6 +275,63 @@ function WebVitalsPages({ data, percentile }: WebVitalsPagesProps) {
         </Table>
       </TableContainer>
     </Paper>
+  );
+}
+
+interface WebVitalsTabProps {
+  metric: WebVitalsMetric;
+  value: number | null;
+  active: boolean;
+  onClick: () => void;
+}
+
+function WebVitalsTab({ metric, value, active, onClick }: WebVitalsTabProps) {
+  const classes = useStyles();
+  return (
+    <div
+      className={clsx(classes.webVitalTab, { [classes.active]: active })}
+      onClick={onClick}
+    >
+      <div>{metric}</div>
+      <div>
+        {value === null ? '-' : METRICS[metric].format(value)}{' '}
+        {METRICS[metric].unit || ''}
+      </div>
+    </div>
+  );
+}
+
+interface WebVitalsTabsProps {
+  data?: ChartData;
+  percentile: Percentile;
+  value: WebVitalsMetric;
+  onChange: (newValue: WebVitalsMetric) => void;
+}
+
+function WebVitalsTabs({
+  data,
+  percentile,
+  value,
+  onChange,
+}: WebVitalsTabsProps) {
+  const classes = useStyles();
+  const tabProps = (metric: WebVitalsMetric): WebVitalsTabProps => ({
+    metric,
+    active: value === metric,
+    onClick: () => onChange(metric),
+    value: data
+      ? data[`${metric}_percentiles` as const].values[percentile]
+      : null,
+  });
+
+  return (
+    <div className={classes.webVitalTabs}>
+      <WebVitalsTab {...tabProps('FCP')} />
+      <WebVitalsTab {...tabProps('LCP')} />
+      <WebVitalsTab {...tabProps('FID')} />
+      <WebVitalsTab {...tabProps('TTFB')} />
+      <WebVitalsTab {...tabProps('CLS')} />
+    </div>
   );
 }
 
@@ -362,6 +343,7 @@ export default function PropertyPageContent({ id }: PropertyProps) {
   const classes = useStyles();
   const [percentile, setPercentile] = React.useState<Percentile>('75.0');
   const [device, setDevice] = React.useState<WebVitalsDevice>('mobile');
+  const [activeTab, setActiveTab] = React.useState<WebVitalsMetric>('FCP');
   const { data: property } = useSWR<Property>(`/api/data/${id}`);
   const { data: overviewData } = useSWR<ChartData>(
     `/api/data/${id}/web-vitals-overview?device=${encodeURIComponent(device)}`
@@ -370,21 +352,10 @@ export default function PropertyPageContent({ id }: PropertyProps) {
     `/api/data/${id}/web-vitals-pages?device=${encodeURIComponent(device)}`
   );
   return (
-    <>
-      <Typography variant="h2">
-        {property ? property.name : <Skeleton width={260} />}
-      </Typography>
-      <Toolbar disableGutters>
-        {property && (
-          <>
-            <Link href={`/property/${property.id}/visitors`}>visitors</Link>
-            <span style={{ margin: '0 8px' }}>|</span>
-            <Link href={`/property/${property.id}/web-vitals`}>web vitals</Link>
-          </>
-        )}
-      </Toolbar>
+    <PropertyShell property={property} active="webVitals">
       <Box my={3}>
         <Toolbar disableGutters>
+          <Box flex={1} />
           <Select
             className={classes.toolbarControl}
             variant="outlined"
@@ -414,14 +385,38 @@ export default function PropertyPageContent({ id }: PropertyProps) {
           </RadioGroup>
         </Toolbar>
       </Box>
-      <Grid container spacing={4}>
-        <Grid item xs={12}>
-          <WebVitalsOverview data={overviewData} percentile={percentile} />
+      <WebVitalsTabs
+        data={overviewData}
+        percentile={percentile}
+        value={activeTab}
+        onChange={setActiveTab}
+      />
+      <Box mt={5}>
+        <Grid container spacing={4}>
+          <Grid item xs={12}>
+            <Typography variant="h6">{METRICS[activeTab].title}</Typography>
+            <Typography>
+              {METRICS[activeTab].description}{' '}
+              <Link href={METRICS[activeTab].link}>More info</Link>
+            </Typography>
+          </Grid>
+
+          <Grid item xs={12}>
+            <WebVitalsOverview
+              data={overviewData}
+              metric={activeTab}
+              percentile={percentile}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <WebVitalsPages
+              data={pagesData}
+              metric={activeTab}
+              percentile={percentile}
+            />
+          </Grid>
         </Grid>
-        <Grid item xs={12}>
-          <WebVitalsPages data={pagesData} percentile={percentile} />
-        </Grid>
-      </Grid>
-    </>
+      </Box>
+    </PropertyShell>
   );
 }
