@@ -9,13 +9,13 @@ import {
   IconButton,
   Menu,
   MenuItem,
-  Typography,
   CircularProgress,
   Tab,
   Tabs,
 } from '@material-ui/core';
-import Link, { Anchor } from './Link';
+import { Anchor } from './Link';
 import { Property } from '../types';
+import HomeIcon from '@material-ui/icons/Home';
 
 export interface LayoutProps {
   activeTab?: 'visitors' | 'webVitals';
@@ -47,58 +47,79 @@ export default function Layout({ property, children, activeTab }: LayoutProps) {
     <>
       <Container>
         <Toolbar disableGutters>
-          {property && (
-            <>
-              <Tabs value={activeTab}>
-                <Tab
-                  value="visitors"
-                  component={Anchor}
-                  disabled={!property}
-                  href={property ? `/property/${property.id}/visitors` : '/'}
-                  label="Visitors"
-                />
-                <Tab
-                  value="webVitals"
-                  component={Anchor}
-                  disabled={!property}
-                  href={property ? `/property/${property.id}/web-vitals` : '/'}
-                  label="Web Vitals"
-                />
-              </Tabs>
-            </>
-          )}
-          <Box flex={1} />
-          <Link href="/">
-            <Typography variant="h6">Web Monitor</Typography>
-          </Link>
-          <Box flex={1} />
-          {session ? (
-            <>
-              <Menu
-                anchorEl={anchorEl}
-                keepMounted
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                getContentAnchorEl={null}
-                open={isMenuOpen}
-                onClose={handleMenuClose}
-              >
-                <MenuItem onClick={handleSignOutClick}>Sign out</MenuItem>
-              </Menu>
-              <IconButton onClick={handleMenuOpen} edge="end" size="small">
-                <Avatar
-                  alt={session.user.name || session.user.email || ''}
-                  src={session.user.image || undefined}
-                />
-              </IconButton>
-            </>
-          ) : loading ? (
-            <CircularProgress size={24} />
-          ) : (
-            <Button variant="outlined" onClick={() => signIn()}>
-              Sign in
-            </Button>
-          )}
+          <Box
+            display="flex"
+            flexGrow={1}
+            flexBasis={0}
+            justifyContent="flex-start"
+          >
+            {property && (
+              <>
+                <Tabs value={activeTab}>
+                  <Tab
+                    value="visitors"
+                    component={Anchor}
+                    disabled={!property}
+                    href={property ? `/property/${property.id}/visitors` : '/'}
+                    label="Visitors"
+                  />
+                  <Tab
+                    value="webVitals"
+                    component={Anchor}
+                    disabled={!property}
+                    href={
+                      property ? `/property/${property.id}/web-vitals` : '/'
+                    }
+                    label="Web Vitals"
+                  />
+                </Tabs>
+              </>
+            )}
+          </Box>
+          <Box
+            display="flex"
+            flexGrow={1}
+            flexBasis={0}
+            justifyContent="center"
+          >
+            <IconButton component={Anchor} href="/">
+              <HomeIcon />
+            </IconButton>
+          </Box>
+          <Box
+            display="flex"
+            flexGrow={1}
+            flexBasis={0}
+            justifyContent="flex-end"
+          >
+            {session ? (
+              <>
+                <Menu
+                  anchorEl={anchorEl}
+                  keepMounted
+                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                  getContentAnchorEl={null}
+                  open={isMenuOpen}
+                  onClose={handleMenuClose}
+                >
+                  <MenuItem onClick={handleSignOutClick}>Sign out</MenuItem>
+                </Menu>
+                <IconButton onClick={handleMenuOpen} edge="end" size="small">
+                  <Avatar
+                    alt={session.user.name || session.user.email || ''}
+                    src={session.user.image || undefined}
+                  />
+                </IconButton>
+              </>
+            ) : loading ? (
+              <CircularProgress size={24} />
+            ) : (
+              <Button variant="outlined" onClick={() => signIn()}>
+                Sign in
+              </Button>
+            )}
+          </Box>
         </Toolbar>
       </Container>
       {session && children}

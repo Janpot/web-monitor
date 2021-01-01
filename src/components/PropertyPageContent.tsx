@@ -36,42 +36,29 @@ import Link from './Link';
 import clsx from 'clsx';
 import PropertyToolbar from './PropertyToolbar';
 import Layout from './Layout';
+import { PaperTab, PaperTabContent, PaperTabs } from './PaperTabs';
 
 const useStyles = makeStyles((theme) =>
   createStyles({
     toolbarControl: {
       marginRight: theme.spacing(2),
     },
-    active: {},
+    bad: {},
     webVitalsSummaries: {
       background: theme.palette.grey[900],
     },
     webVitalTab: {
-      flex: 1,
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       padding: theme.spacing(2),
-      fontSize: 24,
-      cursor: 'pointer',
-      '&$active': {
-        borderRadius: [
-          [theme.shape.borderRadius, theme.shape.borderRadius, 0, 0],
-        ],
-        background: theme.palette.background.paper,
-        boxShadow: theme.shadows[4],
-        clipPath: `inset(-5px -5px 0px -5px)`,
+      color: theme.palette.success.main,
+      '&$bad': {
+        color: theme.palette.error.main,
       },
     },
-    webVitalTabs: {
-      display: 'flex',
-      flexDirection: 'row',
-    },
-    webVitalTabContent: {
-      padding: theme.spacing(5, 2, 2, 2),
-      background: theme.palette.background.paper,
-      borderRadius: theme.shape.borderRadius,
-      boxShadow: theme.shadows[4],
+    metricValue: {
+      fontSize: 24,
     },
   })
 );
@@ -252,9 +239,7 @@ function columnValue(
 function WebVitalsPages({ data, percentile, metric }: WebVitalsPagesProps) {
   return (
     <>
-      <Box p={2}>
-        <Typography variant="h6">By page</Typography>
-      </Box>
+      <Typography variant="h6">By page</Typography>
       <TableContainer>
         <Table>
           <TableHead>
@@ -291,16 +276,19 @@ interface WebVitalsTabProps {
 function WebVitalsTab({ metric, value, active, onClick }: WebVitalsTabProps) {
   const classes = useStyles();
   return (
-    <div
-      className={clsx(classes.webVitalTab, { [classes.active]: active })}
+    <PaperTab
+      className={clsx(classes.webVitalTab, {
+        [classes.bad]: value && value > METRICS[metric].target,
+      })}
       onClick={onClick}
+      active={active}
     >
       <div>{metric}</div>
-      <div>
+      <div className={classes.metricValue}>
         {value === null ? '-' : METRICS[metric].format(value)}{' '}
         {METRICS[metric].unit || ''}
       </div>
-    </div>
+    </PaperTab>
   );
 }
 
@@ -317,7 +305,6 @@ function WebVitalsTabs({
   value,
   onChange,
 }: WebVitalsTabsProps) {
-  const classes = useStyles();
   const tabProps = (metric: WebVitalsMetric): WebVitalsTabProps => ({
     metric,
     active: value === metric,
@@ -328,13 +315,13 @@ function WebVitalsTabs({
   });
 
   return (
-    <div className={classes.webVitalTabs}>
+    <PaperTabs>
       <WebVitalsTab {...tabProps('FCP')} />
       <WebVitalsTab {...tabProps('LCP')} />
       <WebVitalsTab {...tabProps('FID')} />
       <WebVitalsTab {...tabProps('TTFB')} />
       <WebVitalsTab {...tabProps('CLS')} />
-    </div>
+    </PaperTabs>
   );
 }
 
@@ -404,7 +391,7 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
             value={activeTab}
             onChange={setActiveTab}
           />
-          <div className={classes.webVitalTabContent}>
+          <PaperTabContent>
             <Grid container spacing={4}>
               <Grid item xs={12}>
                 <Typography variant="h6">{METRICS[activeTab].title}</Typography>
@@ -429,7 +416,7 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
                 />
               </Grid>
             </Grid>
-          </div>
+          </PaperTabContent>
         </Box>
       </Container>
     </Layout>

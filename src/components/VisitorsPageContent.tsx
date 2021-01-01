@@ -11,9 +11,6 @@ import {
   Tooltip,
 } from 'recharts';
 import {
-  Box,
-  Divider,
-  Paper,
   Typography,
   useTheme,
   Grid,
@@ -23,9 +20,9 @@ import {
   Container,
 } from '@material-ui/core';
 import { Property } from '../types';
-import clsx from 'clsx';
 import PropertyToolbar from './PropertyToolbar';
 import Layout from './Layout';
+import { PaperTab, PaperTabContent, PaperTabs } from './PaperTabs';
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -33,6 +30,15 @@ const useStyles = makeStyles((theme) =>
       marginRight: theme.spacing(2),
     },
     active: {},
+    visitorsMetricTab: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      padding: theme.spacing(2),
+    },
+    metricValue: {
+      fontSize: 24,
+    },
     webVitalsSummaries: {
       background: theme.palette.grey[900],
     },
@@ -148,91 +154,55 @@ function WebVitalOverviewChart({
   );
 }
 
-interface WebVitalSummaryProps {
-  name: VisitorsMetric;
-  value: number | null;
-  active?: boolean;
-  onClick: () => void;
-}
-
-function WebVitalOverviewSummary({
-  name,
-  value,
-  active,
-  onClick,
-}: WebVitalSummaryProps) {
-  const classes = useStyles();
-  return (
-    <div
-      className={clsx(classes.webVitalSummary, { [classes.active]: active })}
-      onClick={onClick}
-    >
-      <div>{name}</div>
-      <div>
-        {value === null ? '-' : METRICS[name].format(value)}{' '}
-        {METRICS[name].unit || ''}
-      </div>
-    </div>
-  );
-}
-
 type VisitorsMetric = 'pageviews' | 'sessions' | 'duration' | 'bounceRate';
 
 interface WebVitalsOverviewProps {
+  metric: VisitorsMetric;
   data?: VisitorsOverviewData;
 }
 
-function WebVitalsOverview({ data }: WebVitalsOverviewProps) {
-  const classes = useStyles();
-  const [activeMetric, setActiveMetric] = React.useState<VisitorsMetric>(
-    'pageviews'
-  );
-
+function WebVitalsOverview({ data, metric }: WebVitalsOverviewProps) {
   const histogram = data
     ? data.histogram.map((bucket) => ({
         key: bucket.timestamp,
-        value: bucket[activeMetric],
+        value: bucket[metric],
       }))
     : [
         { key: Date.now() - 7 * 24 * 60 * 60 * 1000, value: null },
         { key: Date.now(), value: null },
       ];
 
-  const summaryProps = (name: VisitorsMetric) => ({
-    name,
-    active: activeMetric === name,
-    onClick: () => setActiveMetric(name),
-    value: data ? data[name] : null,
-  });
-
-  return (
-    <Paper>
-      <Box display="flex" flexDirection="row">
-        <Box
-          display="flex"
-          flexDirection="column"
-          className={classes.webVitalsSummaries}
-        >
-          <WebVitalOverviewSummary {...summaryProps('pageviews')} />
-          <Divider flexItem />
-          <WebVitalOverviewSummary {...summaryProps('sessions')} />
-          <Divider flexItem />
-          <WebVitalOverviewSummary {...summaryProps('duration')} />
-          <Divider flexItem />
-          <WebVitalOverviewSummary {...summaryProps('bounceRate')} />
-        </Box>
-        <Box p={3} flex={1} width={0}>
-          <Typography variant="h6">{METRICS[activeMetric].title}</Typography>
-          <Typography>{METRICS[activeMetric].description} </Typography>
-          <Box mt={5}>
-            <WebVitalOverviewChart name={activeMetric} histogram={histogram} />
-          </Box>
-        </Box>
-      </Box>
-    </Paper>
-  );
+  return <WebVitalOverviewChart name={metric} histogram={histogram} />;
 }
 
+interface VisitorsMetricTabProps {
+  metric: VisitorsMetric;
+  value: number | null;
+  active: boolean;
+  onClick: () => void;
+}
+
+function VisitorsMetricTab({
+  metric,
+  value,
+  active,
+  onClick,
+}: VisitorsMetricTabProps) {
+  const classes = useStyles();
+  return (
+    <PaperTab
+      className={classes.visitorsMetricTab}
+      onClick={onClick}
+      active={active}
+    >
+      <div>{metric}</div>
+      <div className={classes.metricValue}>
+        {value === null ? '-' : METRICS[metric].format(value)}{' '}
+        {METRICS[metric].unit || ''}
+      </div>
+    </PaperTab>
+  );
+}
 interface PropertyProps {
   propertyId?: string;
 }
@@ -244,17 +214,35 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
   const { data: overviewData } = useSWR<VisitorsOverviewData>(
     propertyId ? `/api/data/${propertyId}/visitors-overview` : null
   );
+
+  const [activeTab, setActiveTab] = React.useState<VisitorsMetric>('pageviews');
+  const tabProps = (metric: VisitorsMetric): VisitorsMetricTabProps => ({
+    metric,
+    active: activeTab === metric,
+    onClick: () => setActiveTab(metric),
+    value: overviewData ? overviewData[metric] : null,
+  });
   return (
     <Layout activeTab="visitors" property={property}>
       <Container>
         <PropertyToolbar property={property}></PropertyToolbar>
-        <Box mt={4}>
+        <PaperTabs>
+          <VisitorsMetricTab {...tabProps('pageviews')} />
+          <VisitorsMetricTab {...tabProps('sessions')} />
+          <VisitorsMetricTab {...tabProps('duration')} />
+          <VisitorsMetricTab {...tabProps('bounceRate')} />
+        </PaperTabs>
+        <PaperTabContent>
           <Grid container spacing={4}>
             <Grid item xs={12}>
-              <WebVitalsOverview data={overviewData} />
+              <Typography variant="h6">{METRICS[activeTab].title}</Typography>
+              <Typography>{METRICS[activeTab].description}</Typography>
+            </Grid>
+            <Grid item xs={12}>
+              <WebVitalsOverview data={overviewData} metric={activeTab} />
             </Grid>
           </Grid>
-        </Box>
+        </PaperTabContent>
       </Container>
     </Layout>
   );
