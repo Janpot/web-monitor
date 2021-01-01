@@ -57,7 +57,9 @@ interface MetricDescriptor {
   target: number;
 }
 
-const numberFormat = new Intl.NumberFormat('en');
+const numberFormat = new Intl.NumberFormat('en', {
+  maximumFractionDigits: 2,
+});
 const numberFormatSeconds = new Intl.NumberFormat('en', {
   maximumFractionDigits: 2,
 });

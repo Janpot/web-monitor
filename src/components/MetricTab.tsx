@@ -2,7 +2,6 @@ import { makeStyles, createStyles, Typography } from '@material-ui/core';
 import clsx from 'clsx';
 import React from 'react';
 import { PaperTab } from './PaperTabs';
-import ErrorIcon from '@material-ui/icons/ErrorOutline';
 
 const useStyles = makeStyles((theme) =>
   createStyles({
