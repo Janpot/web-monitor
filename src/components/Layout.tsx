@@ -58,7 +58,6 @@ export default function Layout({ property, children, activeTab }: LayoutProps) {
                 value="audience"
                 disabled={!property}
                 component={Anchor}
-                disabled={!property}
                 href={property ? `/property/${property.id}/audience` : '/'}
                 label="Audience"
               />
@@ -66,7 +65,6 @@ export default function Layout({ property, children, activeTab }: LayoutProps) {
                 value="webVitals"
                 disabled={!property}
                 component={Anchor}
-                disabled={!property}
                 href={property ? `/property/${property.id}/web-vitals` : '/'}
                 label="Web Vitals"
               />
