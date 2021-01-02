@@ -18,7 +18,7 @@ import { Property } from '../types';
 import HomeIcon from '@material-ui/icons/Home';
 
 export interface LayoutProps {
-  activeTab?: 'visitors' | 'webVitals';
+  activeTab?: 'audience' | 'webVitals';
   property?: Property;
   children?: React.ReactNode;
 }
@@ -57,11 +57,11 @@ export default function Layout({ property, children, activeTab }: LayoutProps) {
               <>
                 <Tabs value={activeTab}>
                   <Tab
-                    value="visitors"
+                    value="audience"
                     component={Anchor}
                     disabled={!property}
-                    href={property ? `/property/${property.id}/visitors` : '/'}
-                    label="Visitors"
+                    href={property ? `/property/${property.id}/audience` : '/'}
+                    label="Audience"
                   />
                   <Tab
                     value="webVitals"

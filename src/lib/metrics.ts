@@ -320,17 +320,14 @@ export interface WebVitalsPagesData {
     buckets: {
       key: string;
       doc_count: number;
-      FCP_percentiles: { values: Percentiles };
-      LCP_percentiles: { values: Percentiles };
-      FID_percentiles: { values: Percentiles };
-      TTFB_percentiles: { values: Percentiles };
-      CLS_percentiles: { values: Percentiles };
+      percentiles: { values: Percentiles };
     }[];
   };
 }
 
 export async function getWebVitalsPages(
   property: string,
+  metric: WebVitalsMetric,
   { device }: GetChartsOptions
 ) {
   const end = Date.now();
@@ -345,13 +342,16 @@ export async function getWebVitalsPages(
           terms: {
             field: 'location.href',
             size: 10,
+            // Let's make sure the result has some statistical relevance
+            min_doc_count: 5,
+            order: {
+              // can't order by percentiles yet so let's do by average
+              'metric.avg': 'desc',
+            },
           },
           aggs: {
-            FCP_percentiles: percentiles('FCP'),
-            LCP_percentiles: percentiles('LCP'),
-            FID_percentiles: percentiles('FID'),
-            TTFB_percentiles: percentiles('TTFB'),
-            CLS_percentiles: percentiles('CLS'),
+            metric: { stats: { field: metric } },
+            percentiles: percentiles(metric),
           },
         },
       },

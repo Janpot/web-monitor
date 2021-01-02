@@ -37,11 +37,22 @@ import PropertyToolbar from './PropertyToolbar';
 import Layout from './Layout';
 import { PaperTabContent, PaperTabs } from './PaperTabs';
 import MetricTab from './MetricTab';
+import clsx from 'clsx';
 
 const useStyles = makeStyles((theme) =>
   createStyles({
     toolbarControl: {
       marginRight: theme.spacing(2),
+    },
+    bad: {},
+    good: {},
+    valueCell: {
+      '&$bad': {
+        color: theme.palette.error.main,
+      },
+      '&$good': {
+        color: theme.palette.success.main,
+      },
     },
   })
 );
@@ -65,6 +76,10 @@ const numberFormatSeconds = new Intl.NumberFormat('en', {
 });
 const numberFormatMilliseconds = new Intl.NumberFormat('en', {
   maximumFractionDigits: 0,
+});
+const numberFormatCompact = new Intl.NumberFormat('en', {
+  notation: 'compact',
+  maximumFractionDigits: 2,
 });
 
 const METRICS = {
@@ -217,8 +232,29 @@ function columnValue(
   percentile: Percentile,
   bucket: WebVitalsPagesData['pages']['buckets'][number]
 ): string {
-  const value = bucket[`${name}_percentiles` as const].values[percentile];
+  const value = bucket.percentiles.values[percentile];
   return value ? METRICS[name].format(value) : '-';
+}
+
+interface ValuecellProps {
+  metric: WebVitalsMetric;
+  percentile: Percentile;
+  value: number | null;
+}
+
+function Valuecell({ metric, percentile, value }: ValuecellProps) {
+  const classes = useStyles();
+  return (
+    <TableCell
+      className={clsx(classes.valueCell, {
+        [classes.bad]: value && value > METRICS[metric].target,
+        [classes.good]: value && value <= METRICS[metric].target,
+      })}
+      align="right"
+    >
+      {value ? METRICS[metric].format(value) : '-'}
+    </TableCell>
+  );
 }
 
 function WebVitalsPages({ data, percentile, metric }: WebVitalsPagesProps) {
@@ -230,6 +266,7 @@ function WebVitalsPages({ data, percentile, metric }: WebVitalsPagesProps) {
           <TableHead>
             <TableRow>
               <TableCell>Url</TableCell>
+              <TableCell align="right">Samples</TableCell>
               <TableCell align="right">{columnHeader(metric)}</TableCell>
             </TableRow>
           </TableHead>
@@ -240,8 +277,13 @@ function WebVitalsPages({ data, percentile, metric }: WebVitalsPagesProps) {
                   {bucket.key}
                 </TableCell>
                 <TableCell align="right">
-                  {columnValue(metric, percentile, bucket)}
+                  {numberFormatCompact.format(bucket.doc_count)}
                 </TableCell>
+                <Valuecell
+                  metric={metric}
+                  value={bucket.percentiles.values[percentile]}
+                  percentile={percentile}
+                />
               </TableRow>
             ))}
           </TableBody>
@@ -335,7 +377,7 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
   );
   const { data: pagesData } = useSWR<WebVitalsPagesData>(
     propertyId
-      ? `/api/data/${propertyId}/web-vitals-pages?device=${encodeURIComponent(
+      ? `/api/data/${propertyId}/web-vitals-pages/${activeTab}?device=${encodeURIComponent(
           device
         )}`
       : null

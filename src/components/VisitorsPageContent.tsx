@@ -187,7 +187,7 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
     value: overviewData ? overviewData[metric] : null,
   });
   return (
-    <Layout activeTab="visitors" property={property}>
+    <Layout activeTab="audience" property={property}>
       <Container>
         <PropertyToolbar property={property}></PropertyToolbar>
         <PaperTabs>
