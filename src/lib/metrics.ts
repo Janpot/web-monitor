@@ -262,7 +262,7 @@ function makeEsQuery({ start, end, property, device }: MakeEsQueryOptions) {
 }
 
 interface GetChartsOptions {
-  device: WebVitalsDevice;
+  device?: WebVitalsDevice;
 }
 
 function percentiles(field: WebVitalsMetric) {
