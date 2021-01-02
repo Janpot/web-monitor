@@ -10,7 +10,7 @@ export default function Properties() {
       {properties &&
         properties.map((property) => (
           <div key={property.id}>
-            <Link href={`/property/${property.id}/visitors`}>
+            <Link href={`/property/${property.id}/audience`}>
               <a>{property.name}</a>
             </Link>
           </div>
