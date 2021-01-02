@@ -29,7 +29,8 @@ function getDevice(
 
 export default (async (req, res) => {
   const propertyId = getValue(req.query, 'property');
-  const metric = getMetric(req.query, ' metric');
+  const metric = getMetric(req.query, 'metric');
+
   if (!propertyId || !metric) {
     return res.status(400).end();
   }
