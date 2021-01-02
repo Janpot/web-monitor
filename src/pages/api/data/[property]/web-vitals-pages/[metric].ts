@@ -2,6 +2,7 @@ import { NextApiHandler } from 'next';
 import {
   getWebVitalsPages,
   WebVitalsPagesData,
+  WebVitalsPeriod,
 } from '../../../../../lib/metrics';
 import { getValue } from '../../../../../lib/querystring';
 import { WebVitalsDevice, WebVitalsMetric } from '../../../../../types';
@@ -39,6 +40,7 @@ export default (async (req, res) => {
   }
   const webVitalsPages = await getWebVitalsPages(propertyId, metric, {
     device: getDevice(req.query, 'device'),
+    period: req.query.period as WebVitalsPeriod,
   });
   res.json(webVitalsPages);
 }) as NextApiHandler<WebVitalsPagesData>;

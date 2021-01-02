@@ -45,7 +45,7 @@ async function initialize() {
             },
           },
           delete: {
-            min_age: '7d',
+            min_age: '30d',
             actions: {
               delete: {},
             },
@@ -216,10 +216,6 @@ function makeEsQuery({ start, end, property, device }: MakeEsQueryOptions) {
   };
 }
 
-interface GetChartsOptions {
-  device?: WebVitalsDevice;
-}
-
 function percentilesAggregation(field: WebVitalsMetric) {
   return {
     percentiles: {
@@ -240,10 +236,11 @@ export interface WebVitalsPagesData {
 export async function getWebVitalsPages(
   property: string,
   metric: WebVitalsMetric,
-  { device }: GetChartsOptions
+  { device, period = 'week' }: GetWebVitalsParams
 ) {
   const end = Date.now();
-  const start = end - 1000 * 60 * 60 * 24 * 7;
+  const periodInMs = 1000 * 60 * 60 * 24 * (period === 'week' ? 7 : 30);
+  const start = end - periodInMs;
   const response = await client.search({
     index: `${process.env.INDEX_PREFIX}-pagemetrics`,
     body: {
@@ -305,11 +302,17 @@ function mapVisitorsOverviewAggregations(agg: any): VisitorsOverviewMetrics {
   };
 }
 
+interface VisitorsParams {
+  period: WebVitalsPeriod;
+}
+
 export async function getVisitorsOverview(
-  property: string
+  property: string,
+  { period = 'week' }: VisitorsParams
 ): Promise<VisitorsOverviewData> {
   const end = Date.now();
-  const start = end - 1000 * 60 * 60 * 24 * 7;
+  const periodInMs = 1000 * 60 * 60 * 24 * (period === 'week' ? 7 : 30);
+  const start = end - periodInMs;
   const aggregations = {
     session_count: {
       cardinality: { field: 'session' },
@@ -382,16 +385,18 @@ interface WebVitalsBucket extends WebVitalsValues {
   timestamp: number;
 }
 
+export type WebVitalsPeriod = 'week' | 'month';
+
 export interface WebVitalsOverviewData {
-  period: 'week' | 'month';
+  period: WebVitalsPeriod;
   device: WebVitalsDevice;
   current: WebVitalsValues;
   previous: WebVitalsValues;
   histogram: WebVitalsBucket[];
 }
 
-interface GetWebVitalsOverviewParams {
-  period?: 'week' | 'month';
+interface GetWebVitalsParams {
+  period?: WebVitalsPeriod;
   device?: WebVitalsDevice;
 }
 
@@ -444,7 +449,7 @@ function mapWebVitalsValues(aggs: any): WebVitalsValues {
 
 export async function getWebVitalsOverviewData(
   property: string,
-  { device = 'mobile', period = 'week' }: GetWebVitalsOverviewParams
+  { device = 'mobile', period = 'week' }: GetWebVitalsParams
 ): Promise<WebVitalsOverviewData> {
   const now = Date.now();
   const periodInMs = 1000 * 60 * 60 * 24 * (period === 'week' ? 7 : 30);

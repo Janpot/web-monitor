@@ -4,6 +4,7 @@ import {
   WebVitalsOverviewData,
   WebVitalsPagesData,
   WebVitalsPercentiles,
+  WebVitalsPeriod,
 } from '../lib/metrics';
 import {
   ResponsiveContainer,
@@ -379,6 +380,7 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
   const classes = useStyles();
   const [percentile, setPercentile] = React.useState<Percentile>('p75');
   const [device, setDevice] = React.useState<WebVitalsDevice>('mobile');
+  const [period, setPeriod] = React.useState<WebVitalsPeriod>('week');
   const [activeTab, setActiveTab] = React.useState<WebVitalsMetric>('FCP');
 
   const { data: property } = useSWR<Property>(
@@ -388,14 +390,14 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
     propertyId
       ? `/api/data/${propertyId}/web-vitals-overview?device=${encodeURIComponent(
           device
-        )}`
+        )}&period=${period}`
       : null
   );
   const { data: pagesData } = useSWR<WebVitalsPagesData>(
     propertyId
       ? `/api/data/${propertyId}/web-vitals-pages/${activeTab}?device=${encodeURIComponent(
           device
-        )}`
+        )}&period=${period}`
       : null
   );
   return (
@@ -429,6 +431,15 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
               label="Desktop"
             />
           </RadioGroup>
+          <Select
+            className={classes.toolbarControl}
+            variant="outlined"
+            value={period}
+            onChange={(e) => setPeriod(e.target.value as WebVitalsPeriod)}
+          >
+            <MenuItem value="week">Last Week</MenuItem>
+            <MenuItem value="month">Last Month</MenuItem>
+          </Select>
         </PropertyToolbar>
         <Box my={3}>
           <WebVitalsTabs

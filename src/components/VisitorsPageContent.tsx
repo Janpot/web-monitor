@@ -1,6 +1,6 @@
 import useSWR from 'swr';
 import * as React from 'react';
-import { VisitorsOverviewData } from '../lib/metrics';
+import { VisitorsOverviewData, WebVitalsPeriod } from '../lib/metrics';
 import {
   ResponsiveContainer,
   LineChart,
@@ -10,7 +10,14 @@ import {
   YAxis,
   Tooltip,
 } from 'recharts';
-import { Typography, useTheme, Grid, Container } from '@material-ui/core';
+import {
+  Typography,
+  useTheme,
+  Grid,
+  Container,
+  MenuItem,
+  Select,
+} from '@material-ui/core';
 import { Property } from '../types';
 import PropertyToolbar from './PropertyToolbar';
 import Layout from './Layout';
@@ -194,11 +201,14 @@ interface PropertyProps {
 }
 
 export default function PropertyPageContent({ propertyId }: PropertyProps) {
+  const [period, setPeriod] = React.useState<WebVitalsPeriod>('week');
   const { data: property } = useSWR<Property>(
     propertyId ? `/api/data/${propertyId}` : null
   );
   const { data: overviewData } = useSWR<VisitorsOverviewData>(
-    propertyId ? `/api/data/${propertyId}/visitors-overview` : null
+    propertyId
+      ? `/api/data/${propertyId}/visitors-overview?period=${period}`
+      : null
   );
 
   const [activeTab, setActiveTab] = React.useState<VisitorsMetric>('pageviews');
@@ -211,7 +221,16 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
   return (
     <Layout activeTab="audience" property={property}>
       <Container>
-        <PropertyToolbar property={property}></PropertyToolbar>
+        <PropertyToolbar property={property}>
+          <Select
+            variant="outlined"
+            value={period}
+            onChange={(e) => setPeriod(e.target.value as WebVitalsPeriod)}
+          >
+            <MenuItem value="week">Last Week</MenuItem>
+            <MenuItem value="month">Last Month</MenuItem>
+          </Select>
+        </PropertyToolbar>
         <PaperTabs>
           <VisitorsMetricTab {...tabProps('pageviews')} />
           <VisitorsMetricTab {...tabProps('sessions')} />
