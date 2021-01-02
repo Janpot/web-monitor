@@ -227,15 +227,6 @@ function columnHeader(name: WebVitalsMetric): string {
   return `${name} ${METRICS[name].unit ? `(${METRICS[name].unit})` : ''}`;
 }
 
-function columnValue(
-  name: WebVitalsMetric,
-  percentile: Percentile,
-  bucket: WebVitalsPagesData['pages']['buckets'][number]
-): string {
-  const value = bucket.percentiles.values[percentile];
-  return value ? METRICS[name].format(value) : '-';
-}
-
 interface ValuecellProps {
   metric: WebVitalsMetric;
   percentile: Percentile;
