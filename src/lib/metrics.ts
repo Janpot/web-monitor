@@ -236,10 +236,10 @@ export interface WebVitalsPagesData {
 export async function getWebVitalsPages(
   property: string,
   metric: WebVitalsMetric,
-  { device, period = 'week' }: GetWebVitalsParams
+  { device, period = 'day' }: GetWebVitalsParams
 ) {
   const end = Date.now();
-  const periodInMs = 1000 * 60 * 60 * 24 * (period === 'week' ? 7 : 30);
+  const periodInMs = 1000 * 60 * 60 * 24 * (period === 'day' ? 1 : 30);
   const start = end - periodInMs;
   const response = await client.search({
     index: `${process.env.INDEX_PREFIX}-pagemetrics`,
@@ -308,10 +308,10 @@ interface VisitorsParams {
 
 export async function getVisitorsOverview(
   property: string,
-  { period = 'week' }: VisitorsParams
+  { period = 'day' }: VisitorsParams
 ): Promise<VisitorsOverviewData> {
   const end = Date.now();
-  const periodInMs = 1000 * 60 * 60 * 24 * (period === 'week' ? 7 : 30);
+  const periodInMs = 1000 * 60 * 60 * 24 * (period === 'day' ? 1 : 30);
   const start = end - periodInMs;
   const aggregations = {
     session_count: {
@@ -343,7 +343,7 @@ export async function getVisitorsOverview(
         histogram: {
           date_histogram: {
             field: '@timestamp',
-            calendar_interval: '1d',
+            calendar_interval: period === 'day' ? '1h' : '1d',
             min_doc_count: 0, // adds missing buckets
             extended_bounds: {
               min: new Date(start).toISOString(),
@@ -385,7 +385,7 @@ interface WebVitalsBucket extends WebVitalsValues {
   timestamp: number;
 }
 
-export type WebVitalsPeriod = 'week' | 'month';
+export type WebVitalsPeriod = 'day' | 'month';
 
 export interface WebVitalsOverviewData {
   period: WebVitalsPeriod;
@@ -449,10 +449,10 @@ function mapWebVitalsValues(aggs: any): WebVitalsValues {
 
 export async function getWebVitalsOverviewData(
   property: string,
-  { device = 'mobile', period = 'week' }: GetWebVitalsParams
+  { device = 'mobile', period = 'day' }: GetWebVitalsParams
 ): Promise<WebVitalsOverviewData> {
   const now = Date.now();
-  const periodInMs = 1000 * 60 * 60 * 24 * (period === 'week' ? 7 : 30);
+  const periodInMs = 1000 * 60 * 60 * 24 * (period === 'day' ? 1 : 30);
   const currentStart = now - periodInMs;
   const previousStart = currentStart - periodInMs;
   const response = await client.search({
@@ -479,7 +479,7 @@ export async function getWebVitalsOverviewData(
             histogram: {
               date_histogram: {
                 field: '@timestamp',
-                calendar_interval: '1d',
+                calendar_interval: period === 'day' ? '1h' : '1d',
                 min_doc_count: 0, // adds missing buckets
                 extended_bounds: {
                   min: new Date(currentStart).toISOString(),

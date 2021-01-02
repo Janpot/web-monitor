@@ -77,12 +77,18 @@ const dateFormat = new Intl.DateTimeFormat('en', {
   month: 'short',
 });
 
+const timeFormat = new Intl.DateTimeFormat('en', {
+  hour: 'numeric',
+  minute: 'numeric',
+});
+
 interface WebVitalOverviewChartProps {
   name: VisitorsMetric;
   histogram: {
     key: number;
     value: number | null;
   }[];
+  period: WebVitalsPeriod;
 }
 
 function startOfDay(day: Date | number = Date.now()) {
@@ -96,9 +102,15 @@ function ceilToMagnitude(value: number): number {
   return Math.ceil(value / multiplier) * multiplier;
 }
 
+function tickFormatter(period: WebVitalsPeriod) {
+  const formatter = period === 'day' ? timeFormat : dateFormat;
+  return (unixTime: number) => formatter.format(unixTime);
+}
+
 function WebVitalOverviewChart({
   name,
   histogram,
+  period,
 }: WebVitalOverviewChartProps) {
   const theme = useTheme();
   const maxY = histogram.reduce(
@@ -114,7 +126,7 @@ function WebVitalOverviewChart({
           domain={['auto', 'auto']}
           scale="time"
           type="number"
-          tickFormatter={(unixTime) => dateFormat.format(unixTime)}
+          tickFormatter={tickFormatter(period)}
           stroke="#FFF"
         />
         <YAxis
@@ -152,9 +164,10 @@ type VisitorsMetric = 'pageviews' | 'sessions' | 'duration' | 'bounceRate';
 interface WebVitalsOverviewProps {
   metric: VisitorsMetric;
   data?: VisitorsOverviewData;
+  period: WebVitalsPeriod;
 }
 
-function WebVitalsOverview({ data, metric }: WebVitalsOverviewProps) {
+function WebVitalsOverview({ data, metric, period }: WebVitalsOverviewProps) {
   const today = startOfDay().getTime();
   const histogram = data
     ? data.histogram.map((bucket) => ({
@@ -166,7 +179,13 @@ function WebVitalsOverview({ data, metric }: WebVitalsOverviewProps) {
         { key: today, value: null },
       ];
 
-  return <WebVitalOverviewChart name={metric} histogram={histogram} />;
+  return (
+    <WebVitalOverviewChart
+      name={metric}
+      histogram={histogram}
+      period={period}
+    />
+  );
 }
 
 interface VisitorsMetricTabProps {
@@ -201,7 +220,7 @@ interface PropertyProps {
 }
 
 export default function PropertyPageContent({ propertyId }: PropertyProps) {
-  const [period, setPeriod] = React.useState<WebVitalsPeriod>('week');
+  const [period, setPeriod] = React.useState<WebVitalsPeriod>('day');
   const { data: property } = useSWR<Property>(
     propertyId ? `/api/data/${propertyId}` : null
   );
@@ -227,7 +246,7 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
             value={period}
             onChange={(e) => setPeriod(e.target.value as WebVitalsPeriod)}
           >
-            <MenuItem value="week">Last Week</MenuItem>
+            <MenuItem value="day">Last 24h</MenuItem>
             <MenuItem value="month">Last Month</MenuItem>
           </Select>
         </PropertyToolbar>
@@ -244,7 +263,11 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
               <Typography>{METRICS[activeTab].description}</Typography>
             </Grid>
             <Grid item xs={12}>
-              <WebVitalsOverview data={overviewData} metric={activeTab} />
+              <WebVitalsOverview
+                data={overviewData}
+                metric={activeTab}
+                period={period}
+              />
             </Grid>
           </Grid>
         </PaperTabContent>
