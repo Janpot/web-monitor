@@ -1,6 +1,10 @@
 import useSWR from 'swr';
 import * as React from 'react';
-import { ChartData, WebVitalsPagesData } from '../lib/metrics';
+import {
+  WebVitalsOverviewData,
+  WebVitalsPagesData,
+  WebVitalsPercentiles,
+} from '../lib/metrics';
 import {
   ResponsiveContainer,
   LineChart,
@@ -39,6 +43,8 @@ import { PaperTabContent, PaperTabs } from './PaperTabs';
 import MetricTab from './MetricTab';
 import clsx from 'clsx';
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
 const useStyles = makeStyles((theme) =>
   createStyles({
     toolbarControl: {
@@ -57,7 +63,7 @@ const useStyles = makeStyles((theme) =>
   })
 );
 
-type Percentile = '75.0' | '90.0' | '99.0';
+type Percentile = keyof WebVitalsPercentiles;
 
 interface MetricDescriptor {
   title: string;
@@ -142,11 +148,27 @@ interface WebVitalOverviewChartProps {
   }[];
 }
 
+function startOfDay(day: Date | number = Date.now()) {
+  var start = new Date(day);
+  start.setHours(0, 0, 0, 0);
+  return start;
+}
+
+function ceilToMagnitude(value: number): number {
+  const multiplier = 10 ** Math.floor(Math.log10(value));
+  return Math.ceil(value / multiplier) * multiplier;
+}
+
 function WebVitalOverviewChart({
   name,
   histogram,
 }: WebVitalOverviewChartProps) {
   const theme = useTheme();
+  const target = METRICS[name].target;
+  const maxY = histogram.reduce(
+    (max, bucket) => Math.max(max, bucket.value || target),
+    target
+  );
   return (
     <ResponsiveContainer height={200}>
       <LineChart data={histogram}>
@@ -159,7 +181,11 @@ function WebVitalOverviewChart({
           tickFormatter={(unixTime) => dateFormat.format(unixTime)}
           stroke="#FFF"
         />
-        <YAxis tickFormatter={METRICS[name].format} stroke="#FFF" />
+        <YAxis
+          domain={[0, ceilToMagnitude(maxY)]}
+          tickFormatter={METRICS[name].format}
+          stroke="#FFF"
+        />
         <Tooltip
           label={name}
           labelFormatter={(value) => dateFormat.format(value as number)}
@@ -194,9 +220,9 @@ function WebVitalOverviewChart({
 }
 
 interface WebVitalsOverviewProps {
-  data?: ChartData;
+  data?: WebVitalsOverviewData;
   metric: WebVitalsMetric;
-  percentile: Percentile;
+  percentile: keyof WebVitalsPercentiles;
 }
 
 function WebVitalsOverview({
@@ -204,14 +230,15 @@ function WebVitalsOverview({
   percentile,
   metric,
 }: WebVitalsOverviewProps) {
+  const today = startOfDay().getTime();
   const histogram = data
-    ? data.histogram.buckets.map((bucket) => ({
-        key: bucket.key,
-        value: bucket[`${metric}_percentiles` as const].values[percentile],
+    ? data.histogram.map((bucket) => ({
+        key: bucket.timestamp,
+        value: bucket[metric][percentile],
       }))
     : [
-        { key: Date.now() - 7 * 24 * 60 * 60 * 1000, value: null },
-        { key: Date.now(), value: null },
+        { key: today - MS_PER_DAY, value: null },
+        { key: today, value: null },
       ];
 
   return <WebVitalOverviewChart name={metric} histogram={histogram} />;
@@ -262,17 +289,17 @@ function WebVitalsPages({ data, percentile, metric }: WebVitalsPagesProps) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {data?.pages.buckets.map((bucket) => (
-              <TableRow key={bucket.key}>
+            {data?.pages.map((bucket) => (
+              <TableRow key={bucket.page}>
                 <TableCell component="th" scope="row">
-                  {bucket.key}
+                  {bucket.page}
                 </TableCell>
                 <TableCell align="right">
-                  {numberFormatCompact.format(bucket.doc_count)}
+                  {numberFormatCompact.format(bucket.samples)}
                 </TableCell>
                 <Valuecell
                   metric={metric}
-                  value={bucket.percentiles.values[percentile]}
+                  value={bucket.percentiles[percentile]}
                   percentile={percentile}
                 />
               </TableRow>
@@ -314,8 +341,8 @@ function WebVitalsTab({ metric, value, active, onClick }: WebVitalsTabProps) {
 }
 
 interface WebVitalsTabsProps {
-  data?: ChartData;
-  percentile: Percentile;
+  data?: WebVitalsOverviewData;
+  percentile: keyof WebVitalsPercentiles;
   value: WebVitalsMetric;
   onChange: (newValue: WebVitalsMetric) => void;
 }
@@ -330,9 +357,7 @@ function WebVitalsTabs({
     metric,
     active: value === metric,
     onClick: () => onChange(metric),
-    value: data
-      ? data[`${metric}_percentiles` as const].values[percentile]
-      : null,
+    value: data ? data.current[metric][percentile] : null,
   });
 
   return (
@@ -352,14 +377,14 @@ interface PropertyProps {
 
 export default function PropertyPageContent({ propertyId }: PropertyProps) {
   const classes = useStyles();
-  const [percentile, setPercentile] = React.useState<Percentile>('75.0');
+  const [percentile, setPercentile] = React.useState<Percentile>('p75');
   const [device, setDevice] = React.useState<WebVitalsDevice>('mobile');
   const [activeTab, setActiveTab] = React.useState<WebVitalsMetric>('FCP');
 
   const { data: property } = useSWR<Property>(
     propertyId ? `/api/data/${propertyId}` : null
   );
-  const { data: overviewData } = useSWR<ChartData>(
+  const { data: overviewData } = useSWR<WebVitalsOverviewData>(
     propertyId
       ? `/api/data/${propertyId}/web-vitals-overview?device=${encodeURIComponent(
           device
@@ -383,9 +408,9 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
             value={percentile}
             onChange={(e) => setPercentile(e.target.value as Percentile)}
           >
-            <MenuItem value="75.0">75th percentile</MenuItem>
-            <MenuItem value="90.0">90th percentile</MenuItem>
-            <MenuItem value="99.0">99th percentile</MenuItem>
+            <MenuItem value="p75">75th percentile</MenuItem>
+            <MenuItem value="p90">90th percentile</MenuItem>
+            <MenuItem value="p99">99th percentile</MenuItem>
           </Select>
           <RadioGroup
             className={classes.toolbarControl}

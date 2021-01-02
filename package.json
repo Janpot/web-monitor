@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev:tag": "yarn build:tag --environment NODE_ENV:development --watch",
-    "build:tag": "rollup -c",
+    "build:tag": "rollup -c --failAfterWarnings",
     "dev:app": "next dev",
     "build:app": "next build",
     "dev": "concurrently \"yarn:dev:*\"",

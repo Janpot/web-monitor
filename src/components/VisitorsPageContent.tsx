@@ -17,6 +17,8 @@ import Layout from './Layout';
 import { PaperTabContent, PaperTabs } from './PaperTabs';
 import MetricTab from './MetricTab';
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
 interface MetricDescriptor {
   title: string;
   description: string;
@@ -76,11 +78,26 @@ interface WebVitalOverviewChartProps {
   }[];
 }
 
+function startOfDay(day: Date | number = Date.now()) {
+  var start = new Date(day);
+  start.setHours(0, 0, 0, 0);
+  return start;
+}
+
+function ceilToMagnitude(value: number): number {
+  const multiplier = 10 ** Math.floor(Math.log10(value));
+  return Math.ceil(value / multiplier) * multiplier;
+}
+
 function WebVitalOverviewChart({
   name,
   histogram,
 }: WebVitalOverviewChartProps) {
   const theme = useTheme();
+  const maxY = histogram.reduce(
+    (max, bucket) => Math.max(max, bucket.value || 0),
+    0
+  );
   return (
     <ResponsiveContainer height={200}>
       <LineChart data={histogram}>
@@ -93,7 +110,11 @@ function WebVitalOverviewChart({
           tickFormatter={(unixTime) => dateFormat.format(unixTime)}
           stroke="#FFF"
         />
-        <YAxis tickFormatter={METRICS[name].format} stroke="#FFF" />
+        <YAxis
+          domain={[0, ceilToMagnitude(maxY)]}
+          tickFormatter={METRICS[name].format}
+          stroke="#FFF"
+        />
         <Tooltip
           label={name}
           labelFormatter={(value) => dateFormat.format(value as number)}
@@ -127,14 +148,15 @@ interface WebVitalsOverviewProps {
 }
 
 function WebVitalsOverview({ data, metric }: WebVitalsOverviewProps) {
+  const today = startOfDay().getTime();
   const histogram = data
     ? data.histogram.map((bucket) => ({
         key: bucket.timestamp,
         value: bucket[metric],
       }))
     : [
-        { key: Date.now() - 7 * 24 * 60 * 60 * 1000, value: null },
-        { key: Date.now(), value: null },
+        { key: today - MS_PER_DAY, value: null },
+        { key: today, value: null },
       ];
 
   return <WebVitalOverviewChart name={metric} histogram={histogram} />;

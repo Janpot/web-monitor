@@ -1,5 +1,8 @@
 import { NextApiHandler } from 'next';
-import { getWebVitalsPages } from '../../../../../lib/metrics';
+import {
+  getWebVitalsPages,
+  WebVitalsPagesData,
+} from '../../../../../lib/metrics';
 import { getValue } from '../../../../../lib/querystring';
 import { WebVitalsDevice, WebVitalsMetric } from '../../../../../types';
 
@@ -34,8 +37,8 @@ export default (async (req, res) => {
   if (!propertyId || !metric) {
     return res.status(400).end();
   }
-  const chartData = await getWebVitalsPages(propertyId, metric, {
+  const webVitalsPages = await getWebVitalsPages(propertyId, metric, {
     device: getDevice(req.query, 'device'),
   });
-  res.json(chartData);
-}) as NextApiHandler;
+  res.json(webVitalsPages);
+}) as NextApiHandler<WebVitalsPagesData>;

@@ -196,30 +196,6 @@ export async function addMetric(
 }
 
 const PERCENTILES = ['75', '90', '99'] as const;
-interface Percentiles {
-  '75.0': number | null;
-  '90.0': number | null;
-  '99.0': number | null;
-}
-
-export interface ChartData {
-  FCP_percentiles: { values: Percentiles };
-  LCP_percentiles: { values: Percentiles };
-  FID_percentiles: { values: Percentiles };
-  TTFB_percentiles: { values: Percentiles };
-  CLS_percentiles: { values: Percentiles };
-  histogram: {
-    buckets: {
-      key: number;
-      doc_count: number;
-      FCP_percentiles: { values: Percentiles };
-      LCP_percentiles: { values: Percentiles };
-      FID_percentiles: { values: Percentiles };
-      TTFB_percentiles: { values: Percentiles };
-      CLS_percentiles: { values: Percentiles };
-    }[];
-  };
-}
 
 interface MakeEsQueryOptions {
   start: number;
@@ -232,30 +208,9 @@ function makeEsQuery({ start, end, property, device }: MakeEsQueryOptions) {
   return {
     bool: {
       filter: [
-        {
-          term: {
-            property: { value: property },
-          },
-        },
-        device
-          ? {
-              terms: {
-                device:
-                  device === 'mobile'
-                    ? ['smartphone', 'tablet', 'phablet']
-                    : [device],
-              },
-            }
-          : { match_all: {} },
-        {
-          range: {
-            '@timestamp': {
-              gte: new Date(start).toISOString(),
-              lte: new Date(end).toISOString(),
-              format: 'strict_date_optional_time',
-            },
-          },
-        },
+        propertyFilter(property),
+        device ? deviceFilter(device) : { match_all: {} },
+        rangeFilter(start, end),
       ],
     },
   };
@@ -265,7 +220,7 @@ interface GetChartsOptions {
   device?: WebVitalsDevice;
 }
 
-function percentiles(field: WebVitalsMetric) {
+function percentilesAggregation(field: WebVitalsMetric) {
   return {
     percentiles: {
       field,
@@ -274,55 +229,12 @@ function percentiles(field: WebVitalsMetric) {
   };
 }
 
-export async function getCharts(
-  property: string,
-  { device }: GetChartsOptions
-): Promise<ChartData> {
-  const end = Date.now();
-  const start = end - 1000 * 60 * 60 * 24 * 7;
-  const response = await client.search({
-    index: `${process.env.INDEX_PREFIX}-pagemetrics`,
-    body: {
-      query: makeEsQuery({ start, end, property, device }),
-      size: 0,
-      aggs: {
-        FCP_percentiles: percentiles('FCP'),
-        LCP_percentiles: percentiles('LCP'),
-        FID_percentiles: percentiles('FID'),
-        TTFB_percentiles: percentiles('TTFB'),
-        CLS_percentiles: percentiles('CLS'),
-        histogram: {
-          date_histogram: {
-            field: '@timestamp',
-            calendar_interval: '1d',
-            min_doc_count: 0, // adds missing buckets
-            extended_bounds: {
-              min: new Date(start).toISOString(),
-              max: new Date(end).toISOString(),
-            },
-          },
-          aggs: {
-            FCP_percentiles: percentiles('FCP'),
-            LCP_percentiles: percentiles('LCP'),
-            FID_percentiles: percentiles('FID'),
-            TTFB_percentiles: percentiles('TTFB'),
-            CLS_percentiles: percentiles('CLS'),
-          },
-        },
-      },
-    },
-  });
-  return response.body.aggregations;
-}
-
 export interface WebVitalsPagesData {
   pages: {
-    buckets: {
-      key: string;
-      doc_count: number;
-      percentiles: { values: Percentiles };
-    }[];
-  };
+    page: string;
+    samples: number;
+    percentiles: WebVitalsPercentiles;
+  }[];
 }
 
 export async function getWebVitalsPages(
@@ -351,13 +263,19 @@ export async function getWebVitalsPages(
           },
           aggs: {
             metric: { stats: { field: metric } },
-            percentiles: percentiles(metric),
+            percentiles: percentilesAggregation(metric),
           },
         },
       },
     },
   });
-  return response.body.aggregations;
+  return {
+    pages: response.body.aggregations.pages.buckets.map((bucket: any) => ({
+      samples: bucket.doc_count,
+      page: bucket.key,
+      percentiles: mapPercentiles(bucket.percentiles.values),
+    })),
+  };
 }
 
 interface VisitorsOverviewMetrics {
@@ -441,6 +359,161 @@ export async function getVisitorsOverview(
       (bucket: any) => ({
         timestamp: bucket.key,
         ...mapVisitorsOverviewAggregations(bucket),
+      })
+    ),
+  };
+}
+
+export interface WebVitalsPercentiles {
+  p75: number | null;
+  p90: number | null;
+  p99: number | null;
+}
+
+interface WebVitalsValues {
+  CLS: WebVitalsPercentiles;
+  FCP: WebVitalsPercentiles;
+  FID: WebVitalsPercentiles;
+  LCP: WebVitalsPercentiles;
+  TTFB: WebVitalsPercentiles;
+}
+
+interface WebVitalsBucket extends WebVitalsValues {
+  timestamp: number;
+}
+
+export interface WebVitalsOverviewData {
+  period: 'week' | 'month';
+  device: WebVitalsDevice;
+  current: WebVitalsValues;
+  previous: WebVitalsValues;
+  histogram: WebVitalsBucket[];
+}
+
+interface GetWebVitalsOverviewParams {
+  period?: 'week' | 'month';
+  device?: WebVitalsDevice;
+}
+
+function propertyFilter(property: string) {
+  return {
+    term: {
+      property: { value: property },
+    },
+  };
+}
+
+function deviceFilter(device: WebVitalsDevice) {
+  return {
+    terms: {
+      device:
+        device === 'mobile' ? ['smartphone', 'tablet', 'phablet'] : [device],
+    },
+  };
+}
+
+function rangeFilter(start: number, end: number) {
+  return {
+    range: {
+      '@timestamp': {
+        gte: new Date(start).toISOString(),
+        lte: new Date(end).toISOString(),
+        format: 'strict_date_optional_time',
+      },
+    },
+  };
+}
+
+function mapPercentiles(percentiles: any): WebVitalsPercentiles {
+  return {
+    p75: percentiles['75.0'],
+    p90: percentiles['90.0'],
+    p99: percentiles['99.0'],
+  };
+}
+
+function mapWebVitalsValues(aggs: any): WebVitalsValues {
+  return {
+    CLS: mapPercentiles(aggs.CLS.values),
+    FCP: mapPercentiles(aggs.FCP.values),
+    FID: mapPercentiles(aggs.FID.values),
+    LCP: mapPercentiles(aggs.LCP.values),
+    TTFB: mapPercentiles(aggs.TTFB.values),
+  };
+}
+
+export async function getWebVitalsOverviewData(
+  property: string,
+  { device = 'mobile', period = 'week' }: GetWebVitalsOverviewParams
+): Promise<WebVitalsOverviewData> {
+  const now = Date.now();
+  const periodInMs = 1000 * 60 * 60 * 24 * (period === 'week' ? 7 : 30);
+  const currentStart = now - periodInMs;
+  const previousStart = currentStart - periodInMs;
+  const response = await client.search({
+    index: `${process.env.INDEX_PREFIX}-pagemetrics`,
+    body: {
+      query: {
+        bool: {
+          filter: [
+            propertyFilter(property),
+            device ? deviceFilter(device) : { match_all: {} },
+          ],
+        },
+      },
+      size: 0,
+      aggs: {
+        current: {
+          filter: rangeFilter(currentStart, now),
+          aggs: {
+            FCP: percentilesAggregation('FCP'),
+            LCP: percentilesAggregation('LCP'),
+            FID: percentilesAggregation('FID'),
+            TTFB: percentilesAggregation('TTFB'),
+            CLS: percentilesAggregation('CLS'),
+            histogram: {
+              date_histogram: {
+                field: '@timestamp',
+                calendar_interval: '1d',
+                min_doc_count: 0, // adds missing buckets
+                extended_bounds: {
+                  min: new Date(currentStart).toISOString(),
+                  max: new Date(now).toISOString(),
+                },
+              },
+              aggs: {
+                FCP: percentilesAggregation('FCP'),
+                LCP: percentilesAggregation('LCP'),
+                FID: percentilesAggregation('FID'),
+                TTFB: percentilesAggregation('TTFB'),
+                CLS: percentilesAggregation('CLS'),
+              },
+            },
+          },
+        },
+        previous: {
+          filter: rangeFilter(previousStart, currentStart),
+          aggs: {
+            FCP: percentilesAggregation('FCP'),
+            LCP: percentilesAggregation('LCP'),
+            FID: percentilesAggregation('FID'),
+            TTFB: percentilesAggregation('TTFB'),
+            CLS: percentilesAggregation('CLS'),
+          },
+        },
+      },
+    },
+  });
+
+  return {
+    period,
+    device,
+    current: mapWebVitalsValues(response.body.aggregations.current),
+    previous: mapWebVitalsValues(response.body.aggregations.previous),
+    histogram: response.body.aggregations.current.histogram.buckets.map(
+      (bucket: any) => ({
+        timestamp: bucket.key,
+        ...mapWebVitalsValues(bucket),
       })
     ),
   };
