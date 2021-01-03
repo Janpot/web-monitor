@@ -136,7 +136,7 @@ function WebVitalOverviewChart({
         />
         <Tooltip
           label={name}
-          labelFormatter={(value) => dateFormat.format(value as number)}
+          labelFormatter={(value) => tickFormatter(period)(Number(value))}
           formatter={(value) =>
             `${METRICS[name].format(value as number)} ${
               METRICS[name].unit || ''

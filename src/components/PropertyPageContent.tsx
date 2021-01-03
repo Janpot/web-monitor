@@ -15,6 +15,7 @@ import {
   YAxis,
   Tooltip,
   ReferenceLine,
+  Dot,
 } from 'recharts';
 import {
   Box,
@@ -43,6 +44,13 @@ import Layout from './Layout';
 import { PaperTabContent, PaperTabs } from './PaperTabs';
 import MetricTab from './MetricTab';
 import clsx from 'clsx';
+import {
+  AnimatedAxis as Axis,
+  AnimatedLineSeries,
+  XYChart,
+  darkTheme,
+  DataContext,
+} from '@visx/xychart';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -201,7 +209,7 @@ function WebVitalOverviewChart({
         />
         <Tooltip
           label={name}
-          labelFormatter={(value) => dateFormat.format(value as number)}
+          labelFormatter={(value) => tickFormatter(period)(value as number)}
           formatter={(value) =>
             `${METRICS[name].format(value as number)} ${
               METRICS[name].unit || ''
@@ -226,9 +234,88 @@ function WebVitalOverviewChart({
           dataKey="value"
           isAnimationActive={false}
           strokeWidth={2}
+          stroke="#61cdbb"
+          fill={theme.palette.background.paper}
+          dot={(props) => <Dot {...props} r={5} />}
         />
       </LineChart>
     </ResponsiveContainer>
+  );
+}
+
+interface Datum {
+  timestamp: number;
+  value: number;
+}
+
+interface LineChartProps<D extends Datum> {
+  data: D[];
+  width: number;
+  height: number;
+  target: number;
+  period: WebVitalsPeriod;
+}
+
+interface ReferenceLineProps {
+  value: number;
+  label?: string;
+}
+
+function ReferenceLine2({ value, label }: ReferenceLineProps) {
+  const { yScale, margin, innerWidth } = React.useContext(DataContext);
+  const y = yScale && yScale(value);
+  return y !== undefined ? (
+    <line
+      strokeDasharray="3 3"
+      stroke="red"
+      x1={margin?.left ?? 0}
+      x2={(margin?.left ?? 0) + (innerWidth ?? 0)}
+      y1={y as number}
+      y2={y as number}
+    />
+  ) : null;
+}
+
+function LineChart2<D extends Datum>({
+  data,
+  width,
+  height,
+  target,
+  period,
+}: LineChartProps<D>) {
+  return (
+    <XYChart
+      xScale={{ type: 'time' }}
+      yScale={{ type: 'linear', zero: true, nice: true }}
+      height={height}
+      theme={darkTheme}
+    >
+      <Axis orientation="left" />
+      <Axis orientation="bottom" />
+      <ReferenceLine2 value={target} />
+      <AnimatedLineSeries
+        dataKey="data"
+        data={data}
+        xAccessor={(d) => d.timestamp}
+        yAccessor={(d) => d.value}
+      />
+    </XYChart>
+  );
+}
+
+function WebVitalOverviewChart2({
+  name,
+  histogram,
+  period,
+}: WebVitalOverviewChartProps) {
+  return (
+    <LineChart2
+      data={histogram.map((x) => ({ timestamp: x.key, value: x.value || 0 }))}
+      width={900}
+      height={300}
+      target={METRICS[name].target}
+      period={period}
+    />
   );
 }
 
@@ -257,11 +344,20 @@ function WebVitalsOverview({
       ];
 
   return (
-    <WebVitalOverviewChart
-      name={metric}
-      histogram={histogram}
-      period={period}
-    />
+    <>
+      <WebVitalOverviewChart
+        name={metric}
+        histogram={histogram}
+        period={period}
+      />
+      {false && (
+        <WebVitalOverviewChart2
+          name={metric}
+          histogram={histogram}
+          period={period}
+        />
+      )}
+    </>
   );
 }
 
