@@ -61,10 +61,23 @@ async function initialize() {
       browser: { type: 'keyword' },
       device: { type: 'keyword' },
       connection: { type: 'keyword' },
+      // deprecated, don't want to sort PII
       ip: { type: 'keyword' },
+      country: { type: 'keyword' },
       session: { type: 'keyword' },
       isNewSession: { type: 'boolean' },
       referrer: { type: 'keyword' },
+      // deprecated, let's use the wrong spelling
+      referral: {
+        properties: {
+          href: { type: 'keyword' },
+          source: { type: 'keyword' },
+          medium: { type: 'keyword' },
+          term: { type: 'keyword' },
+          campaign: { type: 'keyword' },
+          content: { type: 'keyword' },
+        },
+      },
       location: {
         properties: {
           href: { type: 'keyword' },
@@ -125,14 +138,24 @@ export interface Location {
   host: string;
 }
 
+export interface Referral {
+  href?: string;
+  source?: string;
+  medium?: string;
+  term?: string;
+  campaign?: string;
+  content?: string;
+}
+
 export interface SerializedPageServerMetrics {
   timestamp: number;
   browser?: string;
   device?: string;
   location: Location;
-  ip?: string;
   session: string;
   isNewSession: boolean;
+  country?: string;
+  referral?: Referral;
 }
 
 export async function getSession(

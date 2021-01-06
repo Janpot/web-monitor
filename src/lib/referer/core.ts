@@ -85,23 +85,28 @@ function getSearchTerm(config: SourceConfig, referer: URL): string | undefined {
 }
 
 interface ParseResult {
+  href: string;
   medium: string;
   source: string;
-  searchTerm: string | null;
+  term?: string;
 }
 
-export function parse(index: HostnameIndex, referer: URL): ParseResult | null {
+export function parse(
+  index: HostnameIndex,
+  referer: URL
+): ParseResult | undefined {
   const pathnameIndex = findPathnameIndex(index, referer.hostname);
   if (!pathnameIndex) {
-    return null;
+    return undefined;
   }
   const config = findRefererByPathname(pathnameIndex, referer.pathname);
   if (!config) {
-    return null;
+    return undefined;
   }
   return {
+    href: referer.href,
     medium: config.medium,
     source: config.name,
-    searchTerm: getSearchTerm(config, referer) || null,
+    term: getSearchTerm(config, referer) || undefined,
   };
 }
