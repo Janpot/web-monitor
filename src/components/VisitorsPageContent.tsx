@@ -127,16 +127,19 @@ function WebVitalOverviewChart({
           scale="time"
           type="number"
           tickFormatter={tickFormatter(period)}
+          // @ts-ignore will remove recharts soon
           stroke="#FFF"
         />
         <YAxis
           domain={[0, ceilToMagnitude(maxY)]}
           tickFormatter={METRICS[name].format}
+          // @ts-ignore will remove recharts soon
           stroke="#FFF"
         />
         <Tooltip
           label={name}
-          labelFormatter={(value) => tickFormatter(period)(Number(value))}
+          labelFormatter={(value) => tickFormatter(period)(value as number)}
+          // @ts-ignore will remove recharts soon
           formatter={(value) =>
             `${METRICS[name].format(value as number)} ${
               METRICS[name].unit || ''

@@ -29,16 +29,6 @@ export default {
       extensions: ['.js', '.jsx', '.ts', '.tsx'],
       include: ['tag/**/*'],
       babelHelpers: 'bundled',
-      presets: [
-        [
-          '@babel/preset-env',
-          {
-            // MAke sure to output ES5
-            targets: 'defaults',
-          },
-        ],
-        '@babel/preset-typescript',
-      ],
     }),
     nodeResolve(),
     replace({

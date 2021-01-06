@@ -44,13 +44,7 @@ import Layout from './Layout';
 import { PaperTabContent, PaperTabs } from './PaperTabs';
 import MetricTab from './MetricTab';
 import clsx from 'clsx';
-import {
-  AnimatedAxis as Axis,
-  AnimatedLineSeries,
-  XYChart,
-  darkTheme,
-  DataContext,
-} from '@visx/xychart';
+import LineChart2 from './LineChart';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -200,16 +194,19 @@ function WebVitalOverviewChart({
           scale="time"
           type="number"
           tickFormatter={tickFormatter(period)}
+          // @ts-ignore will remove recharts soon
           stroke="#FFF"
         />
         <YAxis
           domain={[0, ceilToMagnitude(maxY)]}
           tickFormatter={METRICS[name].format}
+          // @ts-ignore will remove recharts soon
           stroke="#FFF"
         />
         <Tooltip
           label={name}
           labelFormatter={(value) => tickFormatter(period)(value as number)}
+          // @ts-ignore will remove recharts soon
           formatter={(value) =>
             `${METRICS[name].format(value as number)} ${
               METRICS[name].unit || ''
@@ -223,6 +220,7 @@ function WebVitalOverviewChart({
         />
         <ReferenceLine
           y={METRICS[name].target}
+          // @ts-ignore will remove recharts soon
           label={`target: ${METRICS[name].format(METRICS[name].target)} ${
             METRICS[name].unit || ''
           }`}
@@ -236,86 +234,10 @@ function WebVitalOverviewChart({
           strokeWidth={2}
           stroke="#61cdbb"
           fill={theme.palette.background.paper}
-          dot={(props) => <Dot {...props} r={5} />}
+          dot={<Dot r={5} />}
         />
       </LineChart>
     </ResponsiveContainer>
-  );
-}
-
-interface Datum {
-  timestamp: number;
-  value: number;
-}
-
-interface LineChartProps<D extends Datum> {
-  data: D[];
-  width: number;
-  height: number;
-  target: number;
-  period: WebVitalsPeriod;
-}
-
-interface ReferenceLineProps {
-  value: number;
-  label?: string;
-}
-
-function ReferenceLine2({ value, label }: ReferenceLineProps) {
-  const { yScale, margin, innerWidth } = React.useContext(DataContext);
-  const y = yScale && yScale(value);
-  return y !== undefined ? (
-    <line
-      strokeDasharray="3 3"
-      stroke="red"
-      x1={margin?.left ?? 0}
-      x2={(margin?.left ?? 0) + (innerWidth ?? 0)}
-      y1={y as number}
-      y2={y as number}
-    />
-  ) : null;
-}
-
-function LineChart2<D extends Datum>({
-  data,
-  width,
-  height,
-  target,
-  period,
-}: LineChartProps<D>) {
-  return (
-    <XYChart
-      xScale={{ type: 'time' }}
-      yScale={{ type: 'linear', zero: true, nice: true }}
-      height={height}
-      theme={darkTheme}
-    >
-      <Axis orientation="left" />
-      <Axis orientation="bottom" />
-      <ReferenceLine2 value={target} />
-      <AnimatedLineSeries
-        dataKey="data"
-        data={data}
-        xAccessor={(d) => d.timestamp}
-        yAccessor={(d) => d.value}
-      />
-    </XYChart>
-  );
-}
-
-function WebVitalOverviewChart2({
-  name,
-  histogram,
-  period,
-}: WebVitalOverviewChartProps) {
-  return (
-    <LineChart2
-      data={histogram.map((x) => ({ timestamp: x.key, value: x.value || 0 }))}
-      width={900}
-      height={300}
-      target={METRICS[name].target}
-      period={period}
-    />
   );
 }
 
@@ -350,13 +272,16 @@ function WebVitalsOverview({
         histogram={histogram}
         period={period}
       />
-      {false && (
-        <WebVitalOverviewChart2
-          name={metric}
-          histogram={histogram}
-          period={period}
-        />
-      )}
+      <LineChart2
+        data={histogram.map((x) => ({ timestamp: x.key, value: x.value }))}
+        width={900}
+        height={300}
+        target={METRICS[metric].target}
+        label={metric}
+        valueFormat={METRICS[metric].format}
+        unit={METRICS[metric].unit}
+        dateFormat={tickFormatter(period)}
+      />
     </>
   );
 }
