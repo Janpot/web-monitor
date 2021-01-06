@@ -272,16 +272,18 @@ function WebVitalsOverview({
         histogram={histogram}
         period={period}
       />
-      <LineChart2
-        data={histogram.map((x) => ({ timestamp: x.key, value: x.value }))}
-        width={900}
-        height={300}
-        target={METRICS[metric].target}
-        label={metric}
-        valueFormat={METRICS[metric].format}
-        unit={METRICS[metric].unit}
-        dateFormat={tickFormatter(period)}
-      />
+      {false && (
+        <LineChart2
+          data={histogram.map((x) => ({ timestamp: x.key, value: x.value }))}
+          width={900}
+          height={300}
+          target={METRICS[metric].target}
+          label={metric}
+          valueFormat={METRICS[metric].format}
+          unit={METRICS[metric].unit}
+          dateFormat={tickFormatter(period)}
+        />
+      )}
     </>
   );
 }
