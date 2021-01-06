@@ -24,13 +24,8 @@ function getIpAddress(req: NextApiRequest): string | undefined {
 }
 
 const UTM_PARAMS = ['source', 'medium', 'term', 'campaign', 'content'] as const;
-type UtmParam = typeof UTM_PARAMS[number];
 
-type Utm = {
-  [key in UtmParam]?: string;
-};
-
-function extractUtm(url: URL): Utm | undefined {
+function extractUtm(url: URL): Referral | undefined {
   const entries = UTM_PARAMS.map((param) => [
     param,
     url.searchParams.get(`utm_${param}`),
@@ -39,12 +34,19 @@ function extractUtm(url: URL): Utm | undefined {
 }
 
 function extractReferral(url: URL, referer?: URL): Referral | undefined {
-  return extractUtm(url) || (referer && parseRefererHeader(referer));
+  const fromUtm = extractUtm(url);
+  if (fromUtm) {
+    return fromUtm;
+  } else if (referer) {
+    return (
+      parseRefererHeader(referer) || { href: referer.href, medium: 'unknown' }
+    );
+  }
 }
 
 export default (async (req, res) => {
   // TODO: parse properly
-  const { url: rawUrl, offset, ...event } = JSON.parse(
+  const { url: rawUrl, offset, referrer, ...event } = JSON.parse(
     req.body
   ) as SerializedPageMetrics;
 
@@ -80,23 +82,7 @@ export default (async (req, res) => {
   const session: string = existingSession || uuid.v1();
 
   const referer =
-    (typeof event.referrer === 'string' && new URL(event.referrer)) ||
-    undefined;
-
-  console.log({
-    browser: detected.client?.name,
-    device: detected.device?.type,
-    timestamp,
-    country: country ? country.country : undefined,
-    session,
-    referral: extractReferral(url, referer),
-    isNewSession: !existingSession,
-    location: {
-      href,
-      host: url.host,
-    },
-    ...event,
-  });
+    (typeof referrer === 'string' && new URL(referrer)) || undefined;
 
   await addMetric({
     browser: detected.client?.name,
