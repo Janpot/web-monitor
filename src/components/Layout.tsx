@@ -53,22 +53,24 @@ export default function Layout({ property, children, activeTab }: LayoutProps) {
             flexBasis={0}
             justifyContent="flex-start"
           >
-            <Tabs value={activeTab}>
-              <Tab
-                value="audience"
-                disabled={!property}
-                component={Anchor}
-                href={property ? `/property/${property.id}/audience` : '/'}
-                label="Audience"
-              />
-              <Tab
-                value="webVitals"
-                disabled={!property}
-                component={Anchor}
-                href={property ? `/property/${property.id}/web-vitals` : '/'}
-                label="Web Vitals"
-              />
-            </Tabs>
+            {activeTab && (
+              <Tabs value={activeTab}>
+                <Tab
+                  value="audience"
+                  disabled={!property}
+                  component={Anchor}
+                  href={property ? `/property/${property.id}/audience` : '/'}
+                  label="Audience"
+                />
+                <Tab
+                  value="webVitals"
+                  disabled={!property}
+                  component={Anchor}
+                  href={property ? `/property/${property.id}/web-vitals` : '/'}
+                  label="Web Vitals"
+                />
+              </Tabs>
+            )}
           </Box>
           <Box
             display="flex"

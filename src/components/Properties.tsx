@@ -11,7 +11,7 @@ export default function Properties() {
         properties.map((property) => (
           <div key={property.id}>
             <Link href={`/property/${property.id}/audience`}>
-              <a>{property.name}</a>
+              {property.name}
             </Link>
           </div>
         ))}
