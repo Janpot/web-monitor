@@ -26,10 +26,13 @@ function getIpAddress(req: NextApiRequest): string | undefined {
 const UTM_PARAMS = ['source', 'medium', 'term', 'campaign', 'content'] as const;
 
 function extractUtm(url: URL): Referral | undefined {
-  const entries = UTM_PARAMS.map((param) => [
-    param,
-    url.searchParams.get(`utm_${param}`),
-  ]);
+  const entries: [typeof UTM_PARAMS[number], string][] = [];
+  for (const param of UTM_PARAMS) {
+    const value = url.searchParams.get(`utm_${param}`);
+    if (value) {
+      entries.push([param, value]);
+    }
+  }
   return entries.length > 0 ? Object.fromEntries(entries) : undefined;
 }
 

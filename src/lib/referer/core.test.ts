@@ -47,11 +47,15 @@ test.each([
   (referer, expectedSource, expectedMedium, expectedTerm) => {
     const result = parse(INDEX, new URL(referer));
     if (expectedSource === null) {
-      expect(result).toBeNull();
+      expect(result).toBeUndefined();
     } else {
       expect(result).toHaveProperty('source', expectedSource);
       expect(result).toHaveProperty('medium', expectedMedium);
-      expect(result).toHaveProperty('searchTerm', expectedTerm);
+      if (expectedTerm === null) {
+        expect(result).not.toHaveProperty('term');
+      } else {
+        expect(result).toHaveProperty('term', expectedTerm);
+      }
     }
   }
 );

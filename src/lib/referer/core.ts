@@ -103,10 +103,11 @@ export function parse(
   if (!config) {
     return undefined;
   }
+  const term = getSearchTerm(config, referer);
   return {
     href: referer.href,
     medium: config.medium,
     source: config.name,
-    term: getSearchTerm(config, referer) || undefined,
+    ...(term ? { term } : {}),
   };
 }
