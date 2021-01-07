@@ -27,14 +27,14 @@ export function buildIndex(lib: Lib): HostnameIndex {
       Lib[string][string]
     ][]) {
       for (const urlPattern of config.domains) {
-        const [, hostname, path = '/'] = /([^/]+)(.*)/.exec(urlPattern) || [];
+        const { hostname, pathname } = new URL(`http://${urlPattern}`);
         invariant(!!hostname, `Invalid url pattern "${urlPattern}"`);
-        let pathnameIndex = findPathnameIndex(result, hostname);
+        let pathnameIndex = result.get(hostname);
         if (!pathnameIndex) {
           pathnameIndex = new Map();
           result.set(hostname, pathnameIndex);
         }
-        pathnameIndex.set(path, {
+        pathnameIndex.set(pathname, {
           name: source,
           medium,
           parameters: config.parameters || [],
@@ -64,9 +64,9 @@ function findRefererByPathname(
   index: PathnameIndex,
   pathname: string
 ): SourceConfig | undefined {
-  const segments = pathname.split('/');
-  for (let i = segments.length; i > 0; i--) {
-    const testedPathPrefix = segments.slice(0, i).join('/');
+  const segments = pathname.split('/').slice(1);
+  for (let i = segments.length; i >= 0; i--) {
+    const testedPathPrefix = '/' + segments.slice(0, i).join('/');
     const node = index.get(testedPathPrefix);
     if (node) {
       return node;

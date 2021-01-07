@@ -18,6 +18,19 @@ const INDEX = buildIndex({
       parameters: ['q', 'query'],
     },
   },
+  search: {
+    'Google Product Search': {
+      domains: ['google.com/products'],
+    },
+    Google: {
+      domains: ['www.google.com'],
+    },
+  },
+  social: {
+    'Google+': {
+      domains: ['url.google.com', 'plus.google.com'],
+    },
+  },
 });
 
 test.each([
@@ -42,6 +55,7 @@ test.each([
     'world',
   ],
   ['http://searchme.com/search?other=bs', 'searchEngine', 'bazMedium', null],
+  ['https://www.google.com/', 'Google', 'search', null],
 ])(
   '%s => medium: %s, source %s',
   (referer, expectedSource, expectedMedium, expectedTerm) => {

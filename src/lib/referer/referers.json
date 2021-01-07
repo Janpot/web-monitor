@@ -1,49 +1,4 @@
 {
-  "unknown": {
-    "Google": {
-      "domains": [
-        "support.google.com",
-        "developers.google.com",
-        "maps.google.com",
-        "accounts.google.com",
-        "drive.google.com",
-        "sites.google.com",
-        "groups.google.com",
-        "groups.google.co.uk"
-      ]
-    },
-    "Yandex Maps": {
-      "domains": [
-        "maps.yandex.ru",
-        "maps.yandex.ua",
-        "maps.yandex.com",
-        "maps.yandex.by",
-        "n.maps.yandex.ru"
-      ],
-      "parameters": ["text"]
-    },
-    "Yahoo!": {
-      "domains": [
-        "finance.yahoo.com",
-        "news.yahoo.com",
-        "eurosport.yahoo.com",
-        "sports.yahoo.com",
-        "astrology.yahoo.com",
-        "travel.yahoo.com",
-        "answers.yahoo.com",
-        "screen.yahoo.com",
-        "weather.yahoo.com",
-        "messenger.yahoo.com",
-        "games.yahoo.com",
-        "shopping.yahoo.net",
-        "movies.yahoo.com",
-        "cars.yahoo.com",
-        "lifestyle.yahoo.com",
-        "omg.yahoo.com",
-        "match.yahoo.net"
-      ]
-    }
-  },
   "search": {
     "TalkTalk": {
       "domains": ["www.talktalk.co.uk"],
