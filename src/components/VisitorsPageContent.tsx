@@ -1,6 +1,6 @@
 import useSWR from 'swr';
 import * as React from 'react';
-import { VisitorsOverviewData, WebVitalsPeriod } from '../lib/metrics';
+import { VisitorsOverviewData } from '../lib/metrics';
 import {
   ResponsiveContainer,
   LineChart,
@@ -18,11 +18,12 @@ import {
   MenuItem,
   Select,
 } from '@material-ui/core';
-import { Property } from '../types';
+import { WebVitalsPeriod } from '../types';
 import PropertyToolbar from './PropertyToolbar';
 import Layout from './Layout';
 import { PaperTabContent, PaperTabs } from './PaperTabs';
 import MetricTab from './MetricTab';
+import { getProperty, getVisitorsOverview } from '../pages/api/data';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -224,13 +225,15 @@ interface PropertyProps {
 
 export default function PropertyPageContent({ propertyId }: PropertyProps) {
   const [period, setPeriod] = React.useState<WebVitalsPeriod>('day');
-  const { data: property } = useSWR<Property>(
-    propertyId ? `/api/data/${propertyId}` : null
+
+  const { data: property } = useSWR(
+    propertyId ? propertyId : null,
+    getProperty
   );
-  const { data: overviewData } = useSWR<VisitorsOverviewData>(
-    propertyId
-      ? `/api/data/${propertyId}/visitors-overview?period=${period}`
-      : null
+
+  const { data: overviewData } = useSWR(
+    propertyId ? [propertyId, period] : null,
+    getVisitorsOverview
   );
 
   const [activeTab, setActiveTab] = React.useState<VisitorsMetric>('pageviews');
@@ -240,6 +243,11 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
     onClick: () => setActiveTab(metric),
     value: overviewData ? overviewData[metric] : null,
   });
+
+  if (!property) {
+    return <>Not a property: {propertyId}</>;
+  }
+
   return (
     <Layout activeTab="audience" property={property}>
       <Container>

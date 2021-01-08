@@ -17,7 +17,7 @@ const PROPERTIES: Property[] = [
   },
 ];
 
-export async function getUserProperties() {
+export async function getProperties() {
   return PROPERTIES;
 }
 
