@@ -3,6 +3,7 @@ import {
   SerializedPageMetrics,
   WebVitalsDevice,
   WebVitalsMetric,
+  WebVitalsPeriod,
 } from '../types';
 
 /**
@@ -408,8 +409,6 @@ interface WebVitalsBucket extends WebVitalsValues {
   timestamp: number;
 }
 
-export type WebVitalsPeriod = 'day' | 'month';
-
 export interface WebVitalsOverviewData {
   period: WebVitalsPeriod;
   device: WebVitalsDevice;
@@ -470,7 +469,7 @@ function mapWebVitalsValues(aggs: any): WebVitalsValues {
   };
 }
 
-export async function getWebVitalsOverviewData(
+export async function getWebVitalsOverview(
   property: string,
   { device = 'mobile', period = 'day' }: GetWebVitalsParams
 ): Promise<WebVitalsOverviewData> {

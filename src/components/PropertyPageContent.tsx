@@ -4,7 +4,6 @@ import {
   WebVitalsOverviewData,
   WebVitalsPagesData,
   WebVitalsPercentiles,
-  WebVitalsPeriod,
 } from '../lib/metrics';
 import {
   ResponsiveContainer,
@@ -37,7 +36,7 @@ import {
   TableRow,
   Container,
 } from '@material-ui/core';
-import { Property, WebVitalsDevice, WebVitalsMetric } from '../types';
+import { WebVitalsDevice, WebVitalsMetric, WebVitalsPeriod } from '../types';
 import Link from './Link';
 import PropertyToolbar from './PropertyToolbar';
 import Layout from './Layout';
@@ -45,6 +44,11 @@ import { PaperTabContent, PaperTabs } from './PaperTabs';
 import MetricTab from './MetricTab';
 import clsx from 'clsx';
 import LineChart2 from './LineChart';
+import {
+  getWebVitalsOverview,
+  getWebVitalsPages,
+  getProperty,
+} from '../pages/api/data';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -426,23 +430,25 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
   const [period, setPeriod] = React.useState<WebVitalsPeriod>('day');
   const [activeTab, setActiveTab] = React.useState<WebVitalsMetric>('FCP');
 
-  const { data: property } = useSWR<Property>(
-    propertyId ? `/api/data/${propertyId}` : null
+  const { data: property } = useSWR(
+    propertyId ? propertyId : null,
+    getProperty
   );
-  const { data: overviewData } = useSWR<WebVitalsOverviewData>(
-    propertyId
-      ? `/api/data/${propertyId}/web-vitals-overview?device=${encodeURIComponent(
-          device
-        )}&period=${period}`
-      : null
+
+  const { data: overviewData } = useSWR(
+    propertyId ? [propertyId, device, period] : null,
+    getWebVitalsOverview
   );
-  const { data: pagesData } = useSWR<WebVitalsPagesData>(
-    propertyId
-      ? `/api/data/${propertyId}/web-vitals-pages/${activeTab}?device=${encodeURIComponent(
-          device
-        )}&period=${period}`
-      : null
+
+  const { data: pagesData } = useSWR(
+    propertyId ? [propertyId, activeTab, device, period] : null,
+    getWebVitalsPages
   );
+
+  if (!property) {
+    return <>Not a property: {propertyId}</>;
+  }
+
   return (
     <Layout activeTab="webVitals" property={property}>
       <Container>

@@ -1,6 +1,6 @@
 import useSWR from 'swr';
 import * as React from 'react';
-import { VisitorsOverviewData, WebVitalsPeriod } from '../lib/metrics';
+import { VisitorsOverviewData } from '../lib/metrics';
 import {
   ResponsiveContainer,
   LineChart,
@@ -18,11 +18,12 @@ import {
   MenuItem,
   Select,
 } from '@material-ui/core';
-import { Property } from '../types';
+import { Property, WebVitalsPeriod } from '../types';
 import PropertyToolbar from './PropertyToolbar';
 import Layout from './Layout';
 import { PaperTabContent, PaperTabs } from './PaperTabs';
 import MetricTab from './MetricTab';
+import { getVisitorsOverview } from '../pages/api/data';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -228,9 +229,8 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
     propertyId ? `/api/data/${propertyId}` : null
   );
   const { data: overviewData } = useSWR<VisitorsOverviewData>(
-    propertyId
-      ? `/api/data/${propertyId}/visitors-overview?period=${period}`
-      : null
+    propertyId ? [propertyId, period] : null,
+    getVisitorsOverview
   );
 
   const [activeTab, setActiveTab] = React.useState<VisitorsMetric>('pageviews');

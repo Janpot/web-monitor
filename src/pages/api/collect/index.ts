@@ -1,6 +1,6 @@
 import { NextApiHandler, NextApiRequest } from 'next';
 import { Property, SerializedPageMetrics } from '../../../types';
-import { getProperty } from '../../../lib/database';
+import { getProperty } from '../../../lib/users';
 import { addMetric, getSession, Referral } from '../../../lib/metrics';
 import DeviceDetector from 'device-detector-js';
 import { getValue } from '../../../lib/querystring';

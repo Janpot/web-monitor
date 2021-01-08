@@ -18,5 +18,6 @@ export interface Property {
   ignoredQueryParams: string[];
 }
 
+export type WebVitalsPeriod = 'day' | 'month';
 export type WebVitalsMetric = 'FCP' | 'LCP' | 'FID' | 'TTFB' | 'CLS';
 export type WebVitalsDevice = 'mobile' | 'desktop';
