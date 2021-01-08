@@ -23,7 +23,7 @@ import PropertyToolbar from './PropertyToolbar';
 import Layout from './Layout';
 import { PaperTabContent, PaperTabs } from './PaperTabs';
 import MetricTab from './MetricTab';
-import { getVisitorsOverview } from '../pages/api/data';
+import { getProperty, getVisitorsOverview } from '../pages/api/data';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -226,7 +226,8 @@ interface PropertyProps {
 export default function PropertyPageContent({ propertyId }: PropertyProps) {
   const [period, setPeriod] = React.useState<WebVitalsPeriod>('day');
   const { data: property } = useSWR<Property>(
-    propertyId ? `/api/data/${propertyId}` : null
+    propertyId ? propertyId : null,
+    getProperty
   );
   const { data: overviewData } = useSWR<VisitorsOverviewData>(
     propertyId ? [propertyId, period] : null,
