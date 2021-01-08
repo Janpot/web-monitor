@@ -243,10 +243,6 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
     value: overviewData ? overviewData[metric] : null,
   });
 
-  if (!property) {
-    return <>Not a property: {propertyId}</>;
-  }
-
   return (
     <Layout activeTab="audience" property={property}>
       <Container>

@@ -447,10 +447,6 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
     getWebVitalsPages
   );
 
-  if (!property) {
-    return <>Not a property: {propertyId}</>;
-  }
-
   return (
     <Layout activeTab="webVitals" property={property}>
       <Container>

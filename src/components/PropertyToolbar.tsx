@@ -4,7 +4,7 @@ import * as React from 'react';
 import { Property } from '../types';
 
 export interface PropertyToolbarProps {
-  property?: Property;
+  property?: Property | null;
   children?: React.ReactNode;
 }
 

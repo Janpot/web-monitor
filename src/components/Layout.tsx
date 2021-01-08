@@ -19,7 +19,7 @@ import HomeIcon from '@material-ui/icons/Home';
 
 export interface LayoutProps {
   activeTab?: 'audience' | 'webVitals';
-  property?: Property;
+  property?: Property | null;
   children?: React.ReactNode;
 }
 
