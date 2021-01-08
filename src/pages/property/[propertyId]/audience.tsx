@@ -1,5 +1,5 @@
 import * as React from 'react';
-import VisitorsPageContent from '../../../components/VisitorsPageContent';
+import VisitorsPageContent from '../../../components/AudiencePageContent';
 import { useRouter } from 'next/dist/client/router';
 import { getValue } from '../../../lib/querystring';
 

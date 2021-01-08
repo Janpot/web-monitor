@@ -218,7 +218,9 @@ export function getClient() {
   return client;
 }
 
+export { default as getAudienceOverview } from './getAudienceOverview';
+export { default as getAudienceSources } from './getAudienceSources';
+export { default as getAudienceCountries } from './getAudienceCountries';
+
 export { default as getWebVitalsOverview } from './getWebVitalsOverview';
 export { default as getWebVitalsPages } from './getWebVitalsPages';
-
-export { default as getAudienceOverview } from './getAudienceOverview';

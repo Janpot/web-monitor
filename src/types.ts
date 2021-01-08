@@ -38,6 +38,30 @@ export interface AudienceOverviewData extends AudienceOverviewMetrics {
   histogram: AudienceOverviewHistogramBucket[];
 }
 
+export interface AudienceSourcesBucket {
+  source: string;
+  count: number;
+  percent: number;
+}
+
+export interface AudienceSourcesData {
+  sources: AudienceSourcesBucket[];
+  total: number;
+}
+
+export interface AudienceCountriesBucket {
+  code: string;
+  numeric: string;
+  displayName: string;
+  count: number;
+  percent: number;
+}
+
+export interface AudienceCountriesData {
+  countries: AudienceCountriesBucket[];
+  total: number;
+}
+
 export interface WebVitalsPercentiles {
   p75: number | null;
   p90: number | null;

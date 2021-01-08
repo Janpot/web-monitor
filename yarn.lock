@@ -1602,6 +1602,21 @@
   resolved "https://registry.yarnpkg.com/@types/stack-utils/-/stack-utils-2.0.0.tgz#7036640b4e21cc2f259ae826ce843d277dad8cff"
   integrity sha512-RJJrrySY7A8havqpGObOB4W92QXKJo63/jFLLgpvOtsGUqbQZ9Sbgl35KMm1DjC6j7AvmmU2bIno+3IyEaemaw==
 
+"@types/topojson-client@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@types/topojson-client/-/topojson-client-3.0.0.tgz#2517fae5abbdd3052eb191747c7d0bc268d69918"
+  integrity sha512-HZH6E8XMhjkDEkkpe3HuIg95COuvjdnyy0EKrh8rAi1f6o/V6P3ly1kGyU2E8bpAffXDd2r+Rk5ceMX4XkqHnA==
+  dependencies:
+    "@types/geojson" "*"
+    "@types/topojson-specification" "*"
+
+"@types/topojson-specification@*":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@types/topojson-specification/-/topojson-specification-1.0.1.tgz#a80cb294290b79f2d674d3f5938c544ed2bd9d80"
+  integrity sha512-ZZYZUgkmUls9Uhxx2WZNt9f/h2+H3abUUjOVmq+AaaDFckC5oAwd+MDp95kBirk+XCXrYj0hfpI6DSUiJMrpYQ==
+  dependencies:
+    "@types/geojson" "*"
+
 "@types/ua-parser-js@^0.7.35":
   version "0.7.35"
   resolved "https://registry.yarnpkg.com/@types/ua-parser-js/-/ua-parser-js-0.7.35.tgz#cca67a95deb9165e4b1f449471801e6489d3fe93"
@@ -3031,7 +3046,7 @@ combined-stream@^1.0.6, combined-stream@~1.0.6:
   dependencies:
     delayed-stream "~1.0.0"
 
-commander@^2.20.0:
+commander@2, commander@^2.20.0:
   version "2.20.3"
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.20.3.tgz#fd485e84c03eb4881c20722ba48035e8531aeb33"
   integrity sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==
@@ -3575,6 +3590,11 @@ device-detector-js@^2.2.7:
   version "2.2.7"
   resolved "https://registry.yarnpkg.com/device-detector-js/-/device-detector-js-2.2.7.tgz#ce1c72dfc67bb13af3cafbf0bfae33f5e52a4a0e"
   integrity sha512-I8kyGYv5c92bqO8oJehCOPubebBMwkSMnAr3IJDkpRLyXmIHasGqfA5MCwud17B4vn8FP4pgV3BJFZuQv8s4zQ==
+
+diacritics@1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/diacritics/-/diacritics-1.3.0.tgz#3efa87323ebb863e6696cebb0082d48ff3d6f7a1"
+  integrity sha1-PvqHMj67hj5mls67AILUj/PW96E=
 
 diff-sequences@^26.6.2:
   version "26.6.2"
@@ -4448,6 +4468,13 @@ hyphenate-style-name@^1.0.3:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/hyphenate-style-name/-/hyphenate-style-name-1.0.4.tgz#691879af8e220aea5750e8827db4ef62a54e361d"
   integrity sha512-ygGZLjmXfPHj+ZWh6LwbC37l43MhfztxetbFCoYTM2VjkIUpeHgSNn7QIyVFj7YQ1Wl9Cbw5sholVJPzWvC2MQ==
+
+i18n-iso-countries@^6.4.0:
+  version "6.4.0"
+  resolved "https://registry.yarnpkg.com/i18n-iso-countries/-/i18n-iso-countries-6.4.0.tgz#777582a5b7abb7505196b2e90c0b10ddf3789ac4"
+  integrity sha512-OTDUJq0OqCP+rXnWksTbMDsTE3ZGj92h8GCqIxxZM0eNtdkLVgd5c27q6C6uaZQHy0H/Vskyyx9ieMBBJCMdPw==
+  dependencies:
+    diacritics "1.3.0"
 
 iconv-lite@0.4.24:
   version "0.4.24"
@@ -7844,6 +7871,13 @@ toidentifier@1.0.0:
   resolved "https://registry.yarnpkg.com/toidentifier/-/toidentifier-1.0.0.tgz#7e1be3470f1e77948bc43d94a3c8f4d7752ba553"
   integrity sha512-yaOH/Pk/VEhBWWTlhI+qXxDFXlejDGcQipMlyxda9nthulaxLZUNcUqFxokp0vcYnvteJln5FNQDRrxj3YcbVw==
 
+topojson-client@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/topojson-client/-/topojson-client-3.1.0.tgz#22e8b1ed08a2b922feeb4af6f53b6ef09a467b99"
+  integrity sha512-605uxS6bcYxGXw9qi62XyrV6Q3xwbndjachmNxu8HWTtVPxZfEJN9fd/SZS1Q54Sn2y0TMyMxFj/cJINqGHrKw==
+  dependencies:
+    commander "2"
+
 tough-cookie@^2.3.3, tough-cookie@~2.5.0:
   version "2.5.0"
   resolved "https://registry.yarnpkg.com/tough-cookie/-/tough-cookie-2.5.0.tgz#cd9fb2a0aa1d5a12b473bd9fb96fa3dcff65ade2"
@@ -8272,6 +8306,11 @@ word-wrap@~1.2.3:
   version "1.2.3"
   resolved "https://registry.yarnpkg.com/word-wrap/-/word-wrap-1.2.3.tgz#610636f6b1f703891bd34771ccb17fb93b47079c"
   integrity sha512-Hz/mrNwitNRh/HUAtM/VT/5VH+ygD6DV7mYKZAtHOrbs8U7lvPS6xf7EJKMF0uW1KJCl0H701g3ZGus+muE5vQ==
+
+world-atlas@^2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/world-atlas/-/world-atlas-2.0.2.tgz#4bca4a578f3a413bd409c3f07f2054fe7375824f"
+  integrity sha512-IXfV0qwlKXpckz1FhwXVwKRjiIhOnWttOskm5CtxMsjgE/MXAYRHWJqgXOpM8IkcPBoXnyTU5lFHcYa5ChG0LQ==
 
 wrap-ansi@^5.1.0:
   version "5.1.0"

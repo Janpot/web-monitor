@@ -57,6 +57,38 @@ export async function getAudienceOverview(
   });
 }
 
+export async function getAudienceSources(
+  property: string,
+  period: WebVitalsPeriod
+) {
+  const { req } = getContext();
+  const session = await getSession({ req });
+  if (!session) {
+    throw new Error('Unauthenticated');
+  }
+
+  return metrics.getAudienceSources(metrics.getClient(), {
+    property,
+    period,
+  });
+}
+
+export async function getAudienceCountries(
+  property: string,
+  period: WebVitalsPeriod
+) {
+  const { req } = getContext();
+  const session = await getSession({ req });
+  if (!session) {
+    throw new Error('Unauthenticated');
+  }
+
+  return metrics.getAudienceCountries(metrics.getClient(), {
+    property,
+    period,
+  });
+}
+
 export async function getProperties() {
   const { req } = getContext();
   const session = await getSession({ req });

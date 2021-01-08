@@ -1,4 +1,3 @@
-import useSWR from 'swr';
 import * as React from 'react';
 import {
   ResponsiveContainer,
@@ -51,6 +50,7 @@ import {
   getWebVitalsPages,
   getProperty,
 } from '../pages/api/data';
+import { useSwrFn } from '../lib/swr';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -432,17 +432,17 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
   const [period, setPeriod] = React.useState<WebVitalsPeriod>('day');
   const [activeTab, setActiveTab] = React.useState<WebVitalsMetric>('FCP');
 
-  const { data: property } = useSWR(
-    propertyId ? propertyId : null,
+  const { data: property } = useSwrFn(
+    propertyId ? [propertyId] : null,
     getProperty
   );
 
-  const { data: overviewData } = useSWR(
+  const { data: overviewData } = useSwrFn(
     propertyId ? [propertyId, device, period] : null,
     getWebVitalsOverview
   );
 
-  const { data: pagesData } = useSWR(
+  const { data: pagesData } = useSwrFn(
     propertyId ? [propertyId, activeTab, device, period] : null,
     getWebVitalsPages
   );
