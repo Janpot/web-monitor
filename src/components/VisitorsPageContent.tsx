@@ -1,6 +1,5 @@
 import useSWR from 'swr';
 import * as React from 'react';
-import { VisitorsOverviewData } from '../lib/metrics';
 import {
   ResponsiveContainer,
   LineChart,
@@ -18,12 +17,12 @@ import {
   MenuItem,
   Select,
 } from '@material-ui/core';
-import { WebVitalsPeriod } from '../types';
+import { WebVitalsPeriod, AudienceOverviewData } from '../types';
 import PropertyToolbar from './PropertyToolbar';
 import Layout from './Layout';
 import { PaperTabContent, PaperTabs } from './PaperTabs';
 import MetricTab from './MetricTab';
-import { getProperty, getVisitorsOverview } from '../pages/api/data';
+import { getProperty, getAudienceOverview } from '../pages/api/data';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -165,13 +164,13 @@ function WebVitalOverviewChart({
 
 type VisitorsMetric = 'pageviews' | 'sessions' | 'duration' | 'bounceRate';
 
-interface WebVitalsOverviewProps {
+interface AudienceOverviewProps {
   metric: VisitorsMetric;
-  data?: VisitorsOverviewData;
+  data?: AudienceOverviewData;
   period: WebVitalsPeriod;
 }
 
-function WebVitalsOverview({ data, metric, period }: WebVitalsOverviewProps) {
+function AudienceOverview({ data, metric, period }: AudienceOverviewProps) {
   const today = startOfDay().getTime();
   const histogram = data
     ? data.histogram.map((bucket) => ({
@@ -233,7 +232,7 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
 
   const { data: overviewData } = useSWR(
     propertyId ? [propertyId, period] : null,
-    getVisitorsOverview
+    getAudienceOverview
   );
 
   const [activeTab, setActiveTab] = React.useState<VisitorsMetric>('pageviews');
@@ -274,7 +273,7 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
               <Typography>{METRICS[activeTab].description}</Typography>
             </Grid>
             <Grid item xs={12}>
-              <WebVitalsOverview
+              <AudienceOverview
                 data={overviewData}
                 metric={activeTab}
                 period={period}

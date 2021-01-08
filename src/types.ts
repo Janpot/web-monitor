@@ -21,3 +21,53 @@ export interface Property {
 export type WebVitalsPeriod = 'day' | 'month';
 export type WebVitalsMetric = 'FCP' | 'LCP' | 'FID' | 'TTFB' | 'CLS';
 export type WebVitalsDevice = 'mobile' | 'desktop';
+
+export interface AudienceOverviewMetrics {
+  pageviews: number;
+  sessions: number;
+  duration: number;
+  bounceRate: number;
+}
+
+export interface AudienceOverviewHistogramBucket
+  extends AudienceOverviewMetrics {
+  timestamp: number;
+}
+
+export interface AudienceOverviewData extends AudienceOverviewMetrics {
+  histogram: AudienceOverviewHistogramBucket[];
+}
+
+export interface WebVitalsPercentiles {
+  p75: number | null;
+  p90: number | null;
+  p99: number | null;
+}
+
+export interface WebVitalsValues {
+  CLS: WebVitalsPercentiles;
+  FCP: WebVitalsPercentiles;
+  FID: WebVitalsPercentiles;
+  LCP: WebVitalsPercentiles;
+  TTFB: WebVitalsPercentiles;
+}
+
+export interface WebVitalsBucket extends WebVitalsValues {
+  timestamp: number;
+}
+
+export interface WebVitalsOverviewData {
+  period: WebVitalsPeriod;
+  device: WebVitalsDevice;
+  current: WebVitalsValues;
+  previous: WebVitalsValues;
+  histogram: WebVitalsBucket[];
+}
+
+export interface WebVitalsPagesData {
+  pages: {
+    page: string;
+    samples: number;
+    percentiles: WebVitalsPercentiles;
+  }[];
+}

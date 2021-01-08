@@ -1,13 +1,13 @@
 import { getSession } from 'next-auth/client';
 import { getContext } from 'next-rpc/context';
 import { WebVitalsPeriod, WebVitalsDevice, WebVitalsMetric } from '../../types';
-import * as metricsData from '../../lib/metrics';
+import * as metrics from '../../lib/metrics';
 import * as usersData from '../../lib/users';
 
 export const config = { rpc: true };
 
 export async function getWebVitalsOverview(
-  propertyId: string,
+  property: string,
   device: WebVitalsDevice,
   period: WebVitalsPeriod
 ) {
@@ -16,14 +16,15 @@ export async function getWebVitalsOverview(
   if (!session) {
     throw new Error('Unauthenticated');
   }
-  return metricsData.getWebVitalsOverview(propertyId, {
+  return metrics.getWebVitalsOverview(metrics.getClient(), {
+    property,
     device,
     period,
   });
 }
 
 export async function getWebVitalsPages(
-  propertyId: string,
+  property: string,
   metric: WebVitalsMetric,
   device: WebVitalsDevice,
   period: WebVitalsPeriod
@@ -33,14 +34,16 @@ export async function getWebVitalsPages(
   if (!session) {
     throw new Error('Unauthenticated');
   }
-  return metricsData.getWebVitalsPages(propertyId, metric, {
+  return metrics.getWebVitalsPages(metrics.getClient(), {
+    property,
+    metric,
     device,
     period,
   });
 }
 
-export async function getVisitorsOverview(
-  propertyId: string,
+export async function getAudienceOverview(
+  property: string,
   period: WebVitalsPeriod
 ) {
   const { req } = getContext();
@@ -48,7 +51,8 @@ export async function getVisitorsOverview(
   if (!session) {
     throw new Error('Unauthenticated');
   }
-  return metricsData.getVisitorsOverview(propertyId, {
+  return metrics.getAudienceOverview(metrics.getClient(), {
+    property,
     period,
   });
 }

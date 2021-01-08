@@ -1,11 +1,6 @@
 import useSWR from 'swr';
 import * as React from 'react';
 import {
-  WebVitalsOverviewData,
-  WebVitalsPagesData,
-  WebVitalsPercentiles,
-} from '../lib/metrics';
-import {
   ResponsiveContainer,
   LineChart,
   Line,
@@ -36,7 +31,14 @@ import {
   TableRow,
   Container,
 } from '@material-ui/core';
-import { WebVitalsDevice, WebVitalsMetric, WebVitalsPeriod } from '../types';
+import {
+  WebVitalsDevice,
+  WebVitalsMetric,
+  WebVitalsOverviewData,
+  WebVitalsPagesData,
+  WebVitalsPercentiles,
+  WebVitalsPeriod,
+} from '../types';
 import Link from './Link';
 import PropertyToolbar from './PropertyToolbar';
 import Layout from './Layout';
