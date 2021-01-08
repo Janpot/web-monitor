@@ -1,11 +1,10 @@
 import useSWR from 'swr';
 import * as React from 'react';
-import { Property } from '../types';
 import Link from './Link';
 import { getProperties } from '../pages/api/data';
 
 export default function Properties() {
-  const { data: properties } = useSWR<Property[]>('anything', getProperties);
+  const { data: properties } = useSWR('anything', getProperties);
   return (
     <>
       {properties &&

@@ -18,7 +18,7 @@ import {
   MenuItem,
   Select,
 } from '@material-ui/core';
-import { Property, WebVitalsPeriod } from '../types';
+import { WebVitalsPeriod } from '../types';
 import PropertyToolbar from './PropertyToolbar';
 import Layout from './Layout';
 import { PaperTabContent, PaperTabs } from './PaperTabs';
@@ -225,11 +225,13 @@ interface PropertyProps {
 
 export default function PropertyPageContent({ propertyId }: PropertyProps) {
   const [period, setPeriod] = React.useState<WebVitalsPeriod>('day');
-  const { data: property } = useSWR<Property>(
+
+  const { data: property } = useSWR(
     propertyId ? propertyId : null,
     getProperty
   );
-  const { data: overviewData } = useSWR<VisitorsOverviewData>(
+
+  const { data: overviewData } = useSWR(
     propertyId ? [propertyId, period] : null,
     getVisitorsOverview
   );
@@ -241,6 +243,11 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
     onClick: () => setActiveTab(metric),
     value: overviewData ? overviewData[metric] : null,
   });
+
+  if (!property) {
+    return <>Not a property: {propertyId}</>;
+  }
+
   return (
     <Layout activeTab="audience" property={property}>
       <Container>
