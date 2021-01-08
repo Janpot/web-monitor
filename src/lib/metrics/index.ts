@@ -57,7 +57,6 @@ async function initialize() {
       browser: { type: 'keyword' },
       device: { type: 'keyword' },
       connection: { type: 'keyword' },
-      // deprecated, don't want to sort PII
       ip: { type: 'keyword' },
       country: { type: 'keyword' },
       session: { type: 'keyword' },
@@ -148,6 +147,7 @@ export interface SerializedPageServerMetrics {
   browser?: string;
   device?: string;
   location: Location;
+  ip?: string;
   session: string;
   isNewSession: boolean;
   country?: string;

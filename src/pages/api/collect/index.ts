@@ -92,6 +92,7 @@ export default (async (req, res) => {
     device: detected.device?.type,
     timestamp,
     country: country ? country.country : undefined,
+    ip,
     session,
     referral: extractReferral(url, referer),
     isNewSession: !existingSession,
