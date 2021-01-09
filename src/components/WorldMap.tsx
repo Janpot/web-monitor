@@ -120,13 +120,21 @@ function WorldMapContent({ values, width, height }: WorldMapContentProps) {
     <svg width={width} height={height}>
       <Mercator
         data={world.features}
-        // Fits the world map to exclude big antarctica landmass in mercator projection
-        fitExtent={[
-          [
-            [0, 0],
-            [width, 1.4 * height],
-          ],
-          world,
+        // https://stackoverflow.com/a/54738220/419436
+        fitSize={[
+          [width, height],
+          {
+            type: 'Polygon',
+            coordinates: [
+              [
+                [-179.999, 84],
+                [-179.999, -57],
+                [179.999, -57],
+                [179.999, 84],
+                [-179.999, 84],
+              ],
+            ],
+          },
         ]}
       >
         {(mercator) =>
