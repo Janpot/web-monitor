@@ -261,7 +261,7 @@ interface AudienceCountriesProps {
 
 function AudienceCountries({ data }: AudienceCountriesProps) {
   const values = Object.fromEntries(
-    data?.countries?.map((country) => [country.numeric, country.percent]) || []
+    data?.countries?.map((country) => [country.numeric, country.count]) || []
   );
   return (
     <div style={{ height: 400 }}>

@@ -4,7 +4,14 @@ import * as React from 'react';
 import { Mercator } from '@visx/geo';
 import { ParentSize } from '@visx/responsive';
 import { scaleLinear } from '@visx/scale';
-import { lighten, Tooltip, useTheme, TooltipProps } from '@material-ui/core';
+import {
+  lighten,
+  Tooltip,
+  useTheme,
+  TooltipProps,
+  makeStyles,
+} from '@material-ui/core';
+import ChartTooltipContent from './ChartTooltipContent';
 
 interface FeatureShape {
   type: 'Feature';
@@ -18,11 +25,6 @@ const world = topojson.feature(topology, topology.objects.countries) as {
   type: 'FeatureCollection';
   features: FeatureShape[];
 };
-
-const numberFormatPercent = new Intl.NumberFormat('en', {
-  style: 'percent',
-  maximumFractionDigits: 2,
-});
 
 interface ExtendedTooltipProps extends TooltipProps {
   // will be part of matui v5:
@@ -67,6 +69,16 @@ const ExtendedTooltip = React.forwardRef<typeof Tooltip, ExtendedTooltipProps>(
   }
 );
 
+const useTooltipStyles = makeStyles((theme) => ({
+  tooltip: {
+    boxShadow: theme.shadows[1],
+  },
+}));
+
+const numberFormat = new Intl.NumberFormat('en', {
+  maximumFractionDigits: 2,
+});
+
 interface CountryProps {
   path: string;
   color: string;
@@ -80,8 +92,16 @@ function Country({ path, color, tooltip }: CountryProps) {
   const handleMouseEnter = () => setHover(true);
   const handleMouseLeave = () => setHover(false);
 
+  const tooltipClasses = useTooltipStyles();
+
   return (
-    <ExtendedTooltip title={tooltip} placement="top" arrow followCursor>
+    <ExtendedTooltip
+      classes={tooltipClasses}
+      title={tooltip}
+      placement="top"
+      arrow
+      followCursor
+    >
       <path
         d={path}
         fill={hover ? lighten(color, 0.1) : color}
@@ -144,13 +164,17 @@ function WorldMapContent({ values, width, height }: WorldMapContentProps) {
             const countryColor =
               typeof value === 'number'
                 ? color(value)
-                : theme.palette.grey[700];
+                : theme.palette.grey[600];
             return (
               <Country
                 key={feature.id}
-                tooltip={`${name}: ${
-                  value ? numberFormatPercent.format(value) : '-'
-                }`}
+                tooltip={
+                  <ChartTooltipContent
+                    title={name}
+                    data={[{ label: 'Pageviews', value }]}
+                    formatValue={numberFormat.format}
+                  />
+                }
                 path={path || ''}
                 color={countryColor}
               />

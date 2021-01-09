@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Typography, useTheme, Tooltip as MuiTooltip } from '@material-ui/core';
+import { useTheme, Tooltip as MuiTooltip } from '@material-ui/core';
 import {
   Axis,
   LineSeries,
@@ -10,6 +10,7 @@ import {
 } from '@visx/xychart';
 import { curveMonotoneX } from '@visx/curve';
 import { Line } from '@visx/shape';
+import ChartTooltipContent from './ChartTooltipContent';
 
 interface Datum {
   timestamp: number;
@@ -142,18 +143,13 @@ export default function LineChart<D extends Datum>({
               <MuiTooltip
                 open
                 title={
-                  <>
-                    <Typography variant="h5">
-                      {dateFormat(nearestDatum.datum?.timestamp)}
-                    </Typography>
-                    <Typography variant="body2">
-                      {nearestDatum.datum?.value
-                        ? `${valueFormat(nearestDatum.datum?.value)} ${
-                            unit || ''
-                          }`
-                        : '-'}
-                    </Typography>
-                  </>
+                  <ChartTooltipContent
+                    title={dateFormat(nearestDatum.datum?.timestamp)}
+                    data={[{ label, value: nearestDatum.datum?.value }]}
+                    formatValue={(value) =>
+                      `${valueFormat(value)} ${unit || ''}`
+                    }
+                  />
                 }
                 placement="top"
                 arrow
