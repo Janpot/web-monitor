@@ -25,6 +25,7 @@ export default async function getAudienceSources(
         sources: {
           terms: {
             field: 'referral.source',
+            size: 10,
           },
         },
       },
@@ -33,12 +34,26 @@ export default async function getAudienceSources(
 
   const total = response.body.hits.total.value;
 
+  const otherCount = response.body.aggregations.sources.sum_other_doc_count;
+
   return {
     total,
-    sources: response.body.aggregations.sources.buckets.map((bucket: any) => ({
-      source: bucket.key,
-      count: bucket.doc_count,
-      percent: bucket.doc_count / total,
-    })),
+    sources: [
+      ...response.body.aggregations.sources.buckets.map((bucket: any) => ({
+        source: bucket.key,
+        count: bucket.doc_count,
+        percent: bucket.doc_count / total,
+      })),
+      ...(otherCount > 0
+        ? [
+            {
+              source: 'Other',
+              count: response.body.aggregations.sources.sum_other_doc_count,
+              percent:
+                response.body.aggregations.sources.sum_other_doc_count / total,
+            },
+          ]
+        : []),
+    ],
   };
 }

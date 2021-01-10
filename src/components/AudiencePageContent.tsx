@@ -36,6 +36,7 @@ import {
 } from '../pages/api/data';
 import { useSwrFn } from '../lib/swr';
 import dynamic from 'next/dynamic';
+import RankedBars from './RankedBars';
 
 const WorldMap = dynamic(() => import('./WorldMap'));
 
@@ -52,10 +53,6 @@ interface MetricDescriptor {
 
 const numberFormatCompact = new Intl.NumberFormat('en', {
   notation: 'compact',
-  maximumFractionDigits: 2,
-});
-const numberFormatPercent = new Intl.NumberFormat('en', {
-  style: 'percent',
   maximumFractionDigits: 2,
 });
 const numberFormatPercentValue = new Intl.NumberFormat('en', {
@@ -245,11 +242,14 @@ interface AudienceSourcesProps {
 function AudienceSources({ data }: AudienceSourcesProps) {
   return (
     <div>
-      {data?.sources?.map((bucket) => (
-        <div key={bucket.source}>
-          {bucket.source} {numberFormatPercent.format(bucket.percent)}
-        </div>
-      ))}
+      <RankedBars
+        data={
+          data?.sources
+            ?.map((bucket) => ({ label: bucket.source, value: bucket.count }))
+            .reverse() || []
+        }
+        formatValue={numberFormatCompact.format}
+      />
     </div>
   );
 }
