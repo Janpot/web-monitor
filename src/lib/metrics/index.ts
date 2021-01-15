@@ -219,8 +219,10 @@ export function getClient() {
 }
 
 export { default as getAudienceOverview } from './getAudienceOverview';
-export { default as getAudienceSources } from './getAudienceSources';
 export { default as getAudienceCountries } from './getAudienceCountries';
+export { default as getAudiencePages } from './getAudiencePages';
 
 export { default as getWebVitalsOverview } from './getWebVitalsOverview';
 export { default as getWebVitalsPages } from './getWebVitalsPages';
+
+export { default as getReferralsSources } from './getReferralsSources';

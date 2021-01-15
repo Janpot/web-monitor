@@ -19,8 +19,10 @@ export interface Property {
 }
 
 export type WebVitalsPeriod = 'day' | 'month';
-export type WebVitalsMetric = 'FCP' | 'LCP' | 'FID' | 'TTFB' | 'CLS';
 export type WebVitalsDevice = 'mobile' | 'desktop';
+
+export type WebVitalsMetric = 'FCP' | 'LCP' | 'FID' | 'TTFB' | 'CLS';
+export type AudienceMetric = v;
 
 export interface AudienceOverviewMetrics {
   pageviews: number;
@@ -36,17 +38,6 @@ export interface AudienceOverviewHistogramBucket
 
 export interface AudienceOverviewData extends AudienceOverviewMetrics {
   histogram: AudienceOverviewHistogramBucket[];
-}
-
-export interface AudienceSourcesBucket {
-  source: string;
-  count: number;
-  percent: number;
-}
-
-export interface AudienceSourcesData {
-  sources: AudienceSourcesBucket[];
-  total: number;
 }
 
 export interface AudienceCountriesBucket {
@@ -94,4 +85,15 @@ export interface WebVitalsPagesData {
     samples: number;
     percentiles: WebVitalsPercentiles;
   }[];
+}
+
+export interface ReferralsSourcesBucket {
+  source: string;
+  count: number;
+  percent: number;
+}
+
+export interface ReferralsSourcesData {
+  sources: ReferralsSourcesBucket[];
+  total: number;
 }

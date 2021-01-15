@@ -1,15 +1,15 @@
 import { Client } from '@elastic/elasticsearch';
-import { AudienceSourcesData, WebVitalsPeriod } from '../../types';
+import { ReferralsSourcesData, WebVitalsPeriod } from '../../types';
 import { propertyFilter, periodFilter } from './utils';
 interface AudienceSourcesParams {
   property: string;
   period: WebVitalsPeriod;
 }
 
-export default async function getAudienceSources(
+export default async function getReferralsSources(
   client: Client,
   { property, period = 'day' }: AudienceSourcesParams
-): Promise<AudienceSourcesData> {
+): Promise<ReferralsSourcesData> {
   const now = Date.now();
 
   const response = await client.search({

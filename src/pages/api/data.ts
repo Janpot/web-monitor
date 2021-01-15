@@ -1,6 +1,11 @@
 import { getSession } from 'next-auth/client';
 import { getContext } from 'next-rpc/context';
-import { WebVitalsPeriod, WebVitalsDevice, WebVitalsMetric } from '../../types';
+import {
+  WebVitalsPeriod,
+  WebVitalsDevice,
+  WebVitalsMetric,
+  AudienceMetric,
+} from '../../types';
 import * as metrics from '../../lib/metrics';
 import * as usersData from '../../lib/users';
 
@@ -42,6 +47,25 @@ export async function getWebVitalsPages(
   });
 }
 
+export async function getAudiencePages(
+  property: string,
+  metric: AudienceMetric,
+  device: WebVitalsDevice,
+  period: WebVitalsPeriod
+) {
+  const { req } = getContext();
+  const session = await getSession({ req });
+  if (!session) {
+    throw new Error('Unauthenticated');
+  }
+  return metrics.getAudiencePages(metrics.getClient(), {
+    property,
+    metric,
+    device,
+    period,
+  });
+}
+
 export async function getAudienceOverview(
   property: string,
   period: WebVitalsPeriod
@@ -57,7 +81,7 @@ export async function getAudienceOverview(
   });
 }
 
-export async function getAudienceSources(
+export async function getReferralsSources(
   property: string,
   period: WebVitalsPeriod
 ) {
@@ -67,7 +91,7 @@ export async function getAudienceSources(
     throw new Error('Unauthenticated');
   }
 
-  return metrics.getAudienceSources(metrics.getClient(), {
+  return metrics.getReferralsSources(metrics.getClient(), {
     property,
     period,
   });

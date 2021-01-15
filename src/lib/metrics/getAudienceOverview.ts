@@ -6,10 +6,12 @@ import {
 } from '../../types';
 import { propertyFilter, periodFilter, dateHistogram } from './utils';
 
-function mapAudienceOverviewAggregations(agg: any): AudienceOverviewMetrics {
+export function mapAudienceOverviewAggregations(
+  agg: any
+): AudienceOverviewMetrics {
   const sessions = agg.session_count.value;
-  const unouncedSessions = agg.returning_pageviews.unique_sessions.value;
-  const bouncedSessions = sessions - unouncedSessions;
+  const unbouncedSessions = agg.returning_pageviews.unique_sessions.value;
+  const bouncedSessions = sessions - unbouncedSessions;
   return {
     pageviews: agg.pageview_count.value,
     sessions,

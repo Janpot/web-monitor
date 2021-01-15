@@ -32,7 +32,7 @@ interface ExtendedTooltipProps extends TooltipProps {
 }
 
 const ExtendedTooltip = React.forwardRef<typeof Tooltip, ExtendedTooltipProps>(
-  ({ followCursor, ...props }: ExtendedTooltipProps) => {
+  ({ followCursor, ...props }: ExtendedTooltipProps, ref) => {
     const positionRef = React.useRef({ x: 0, y: 0 });
     const popperRef = React.useRef<any>(null);
 
@@ -65,7 +65,7 @@ const ExtendedTooltip = React.forwardRef<typeof Tooltip, ExtendedTooltipProps>(
         }
       : {};
 
-    return <Tooltip {...props} {...extendedTooltipProps} />;
+    return <Tooltip {...props} {...extendedTooltipProps} ref={ref} />;
   }
 );
 
@@ -159,6 +159,9 @@ function WorldMapContent({ values, width, height }: WorldMapContentProps) {
       >
         {(mercator) =>
           mercator.features.map(({ feature, path }, i) => {
+            if (!feature.id) {
+              return null;
+            }
             const { name } = feature.properties;
             const value = values[feature.id];
             const countryColor =

@@ -17,12 +17,16 @@ import {
   Select,
   Paper,
   Box,
+  RadioGroup,
+  FormControlLabel,
+  makeStyles,
+  Radio,
 } from '@material-ui/core';
 import {
   WebVitalsPeriod,
   AudienceOverviewData,
-  AudienceSourcesData,
   AudienceCountriesData,
+  WebVitalsDevice,
 } from '../types';
 import PropertyToolbar from './PropertyToolbar';
 import Layout from './Layout';
@@ -31,12 +35,11 @@ import MetricTab from './MetricTab';
 import {
   getProperty,
   getAudienceOverview,
-  getAudienceSources,
   getAudienceCountries,
+  getAudiencePages,
 } from '../pages/api/data';
 import { useSwrFn } from '../lib/swr';
 import dynamic from 'next/dynamic';
-import RankedBars from './RankedBars';
 
 const WorldMap = dynamic(() => import('./WorldMap'));
 
@@ -87,6 +90,12 @@ const METRICS = {
     unit: '%',
   } as MetricDescriptor,
 };
+
+const useStyles = makeStyles((theme) => ({
+  toolbarControl: {
+    marginLeft: theme.spacing(2),
+  },
+}));
 
 const dateFormat = new Intl.DateTimeFormat('en', {
   day: 'numeric',
@@ -234,26 +243,6 @@ function VisitorsMetricTab({
   );
 }
 
-interface AudienceSourcesProps {
-  data?: AudienceSourcesData;
-  period: WebVitalsPeriod;
-}
-
-function AudienceSources({ data }: AudienceSourcesProps) {
-  return (
-    <div>
-      <RankedBars
-        data={
-          data?.sources
-            ?.map((bucket) => ({ label: bucket.source, value: bucket.count }))
-            .reverse() || []
-        }
-        formatValue={numberFormatCompact.format}
-      />
-    </div>
-  );
-}
-
 interface AudienceCountriesProps {
   data?: AudienceCountriesData;
   period: WebVitalsPeriod;
@@ -275,7 +264,17 @@ interface PropertyProps {
 }
 
 export default function PropertyPageContent({ propertyId }: PropertyProps) {
+  const classes = useStyles();
   const [period, setPeriod] = React.useState<WebVitalsPeriod>('day');
+  const [device, setDevice] = React.useState<WebVitalsDevice>('mobile');
+
+  const [activeTab, setActiveTab] = React.useState<VisitorsMetric>('pageviews');
+  const tabProps = (metric: VisitorsMetric): VisitorsMetricTabProps => ({
+    metric,
+    active: activeTab === metric,
+    onClick: () => setActiveTab(metric),
+    value: overviewData ? overviewData[metric] : null,
+  });
 
   const { data: property } = useSwrFn(
     propertyId ? [propertyId] : null,
@@ -287,28 +286,39 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
     getAudienceOverview
   );
 
-  const { data: sourcesData } = useSwrFn(
-    propertyId ? [propertyId, period] : null,
-    getAudienceSources
-  );
-
   const { data: countriesData } = useSwrFn(
     propertyId ? [propertyId, period] : null,
     getAudienceCountries
   );
 
-  const [activeTab, setActiveTab] = React.useState<VisitorsMetric>('pageviews');
-  const tabProps = (metric: VisitorsMetric): VisitorsMetricTabProps => ({
-    metric,
-    active: activeTab === metric,
-    onClick: () => setActiveTab(metric),
-    value: overviewData ? overviewData[metric] : null,
-  });
+  const { data: pagesData, error } = useSwrFn(
+    propertyId ? [propertyId, activeTab, device, period] : null,
+    getAudiencePages
+  );
+
+  console.log(pagesData, error);
 
   return (
     <Layout activeTab="audience" property={property}>
       <Container>
         <PropertyToolbar property={property}>
+          <RadioGroup
+            className={classes.toolbarControl}
+            row
+            value={device}
+            onChange={(e) => setDevice(e.target.value as WebVitalsDevice)}
+          >
+            <FormControlLabel
+              value="mobile"
+              control={<Radio />}
+              label="Mobile"
+            />
+            <FormControlLabel
+              value="desktop"
+              control={<Radio />}
+              label="Desktop"
+            />
+          </RadioGroup>
           <Select
             variant="outlined"
             value={period}
@@ -347,14 +357,6 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
               <Box p={2}>
                 <Typography variant="h6">By Country</Typography>
                 <AudienceCountries data={countriesData} period={period} />
-              </Box>
-            </Paper>
-          </Grid>
-          <Grid item xs={12} md={6} lg={4}>
-            <Paper>
-              <Box p={2}>
-                <Typography variant="h6">Referral Sources</Typography>
-                <AudienceSources data={sourcesData} period={period} />
               </Box>
             </Paper>
           </Grid>

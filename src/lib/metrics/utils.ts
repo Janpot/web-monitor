@@ -1,6 +1,5 @@
 import {
   WebVitalsDevice,
-  WebVitalsMetric,
   WebVitalsPercentiles,
   WebVitalsPeriod,
   WebVitalsValues,
@@ -54,7 +53,7 @@ export function mapPercentiles(percentiles: any): WebVitalsPercentiles {
 
 const PERCENTILES = ['75', '90', '99'] as const;
 
-export function percentilesAggregation(field: WebVitalsMetric) {
+export function percentilesAggregation(field: string) {
   return {
     percentiles: {
       field,

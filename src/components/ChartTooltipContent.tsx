@@ -16,7 +16,7 @@ export default function ChartTooltipContent<D>({
     <>
       <Typography variant="h6">{title}</Typography>
       {data.map(({ label, value }) => (
-        <Typography variant="body2">
+        <Typography key={label} variant="body2">
           {label}:{' '}
           {value !== null && value !== undefined ? formatValue(value) : '-'}
         </Typography>
