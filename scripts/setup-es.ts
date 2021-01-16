@@ -149,8 +149,6 @@ async function initialize(
             pageviews: { value_count: { field: 'location.href' } },
             uniquePageviews: { cardinality: { field: 'location.href' } },
             visible: { sum: { field: 'visible' } },
-            // TODO:
-            // duration: { sum: { field: 'duration' } },
             details: {
               scripted_metric: {
                 init_script: 'state.docs = []',
@@ -158,16 +156,11 @@ async function initialize(
                   Map span = [
                     '@timestamp':doc['@timestamp'].value,
                     'page':doc['location.href'].value,
-                    'visible':doc['visible'].value
+                    'duration':doc['visible'].size() == 0 ? 0 : doc['visible'].value
                   ];
                   state.docs.add(span)
                 `,
                 combine_script: 'return state.docs;',
-                // TODO:
-                // change
-                //   def lastDuration = all_docs[size-1]['visible'];
-                // to
-                //   def lastDuration = all_docs[size-1]['duration'];
                 reduce_script: `
                   def all_docs = [];
                   for (s in states) {
@@ -182,7 +175,7 @@ async function initialize(
                   def startTime = all_docs[0]['@timestamp'];
 
                   def lastTime = all_docs[size-1]['@timestamp'];
-                  def lastDuration = all_docs[size-1]['visible'];
+                  def lastDuration = all_docs[size-1]['duration'];
                   def endTimeInstant = Instant.ofEpochMilli(lastTime.millis).plusMillis((long)lastDuration);
                   def endTime = ZonedDateTime.ofInstant(endTimeInstant, ZoneId.of('Z'));
 

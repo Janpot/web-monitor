@@ -2,12 +2,7 @@ import { Client } from '@elastic/elasticsearch';
 import { WebVitalsDevice, WebVitalsPeriod, AudienceMetric } from '../../types';
 import { invariant } from '../invariant';
 import { mapAudienceOverviewAggregations } from './getAudienceOverview';
-import {
-  propertyFilter,
-  deviceFilter,
-  periodFilter,
-  mapPercentiles,
-} from './utils';
+import { propertyFilter, deviceFilter, periodFilter } from './utils';
 
 function getOrder(metric: AudienceMetric): string {
   switch (metric) {

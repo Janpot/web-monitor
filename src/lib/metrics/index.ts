@@ -198,8 +198,7 @@ export async function getSession(
 }
 
 export async function addMetric(
-  metric: Omit<SerializedPageMetrics, 'url' | 'offset'> &
-    SerializedPageServerMetrics
+  metric: Omit<SerializedPageMetrics, 'url'> & SerializedPageServerMetrics
 ): Promise<void> {
   await ensureInitialized();
 

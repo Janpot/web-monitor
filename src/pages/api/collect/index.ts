@@ -49,7 +49,7 @@ function extractReferral(url: URL, referer?: URL): Referral | undefined {
 
 export default (async (req, res) => {
   // TODO: parse properly
-  const { url: rawUrl, offset, referrer, ...event } = JSON.parse(
+  const { url: rawUrl, duration, referrer, ...event } = JSON.parse(
     req.body
   ) as SerializedPageMetrics;
 
@@ -76,7 +76,7 @@ export default (async (req, res) => {
     return res.status(403).end();
   }
 
-  const timestamp = Date.now() + offset;
+  const timestamp = Date.now() + duration;
 
   const ip = getIpAddress(req);
   const country = ip ? lookupCountryByIp(ip) : null;
@@ -100,6 +100,7 @@ export default (async (req, res) => {
       href,
       host: url.host,
     },
+    duration,
     ...event,
   });
 

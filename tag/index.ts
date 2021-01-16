@@ -37,7 +37,7 @@ function initPageview(
     url: window.location.href,
     referrer,
     connection,
-    offset: 0,
+    duration: 0,
     visible: 0,
   };
 }
@@ -63,7 +63,7 @@ window.addEventListener('visibilitychange', () => {
 });
 
 function sendPageview() {
-  pageview.offset = sessionStartTime - Date.now();
+  pageview.duration = sessionStartTime - Date.now();
   if (document.visibilityState === 'visible') {
     pageview.visible += Date.now() - visibleStartTime;
   }

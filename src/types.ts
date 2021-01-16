@@ -3,7 +3,7 @@ export interface SerializedPageMetrics {
   url: string;
   referrer?: string;
   connection?: string;
-  offset: number;
+  duration: number;
   visible: number;
   CLS?: number;
   FCP?: number;
@@ -22,7 +22,11 @@ export type WebVitalsPeriod = 'day' | 'month';
 export type WebVitalsDevice = 'mobile' | 'desktop';
 
 export type WebVitalsMetric = 'FCP' | 'LCP' | 'FID' | 'TTFB' | 'CLS';
-export type AudienceMetric = v;
+export type AudienceMetric =
+  | 'pageviews'
+  | 'sessions'
+  | 'duration'
+  | 'bounceRate';
 
 export interface AudienceOverviewMetrics {
   pageviews: number;
