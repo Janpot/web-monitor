@@ -63,7 +63,7 @@ window.addEventListener('visibilitychange', () => {
 });
 
 function sendPageview() {
-  pageview.duration = sessionStartTime - Date.now();
+  pageview.duration = Date.now() - sessionStartTime;
   if (document.visibilityState === 'visible') {
     pageview.visible += Date.now() - visibleStartTime;
   }

@@ -76,7 +76,7 @@ export default (async (req, res) => {
     return res.status(403).end();
   }
 
-  const timestamp = Date.now() + duration;
+  const timestamp = Date.now() - duration;
 
   const ip = getIpAddress(req);
   const country = ip ? lookupCountryByIp(ip) : null;
