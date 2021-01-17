@@ -1,7 +1,7 @@
 import { Client } from '@elastic/elasticsearch';
 import {
   WebVitalsPeriod,
-  WebVitalsDevice,
+  DeviceSelection,
   WebVitalsOverviewData,
 } from '../../types';
 import {
@@ -17,7 +17,7 @@ import {
 interface GetWebVitalsOverviewParams {
   property: string;
   period?: WebVitalsPeriod;
-  device?: WebVitalsDevice;
+  device?: DeviceSelection;
 }
 
 export default async function getWebVitalsOverview(
@@ -31,10 +31,7 @@ export default async function getWebVitalsOverview(
     body: {
       query: {
         bool: {
-          filter: [
-            propertyFilter(property),
-            device ? deviceFilter(device) : { match_all: {} },
-          ],
+          filter: [propertyFilter(property), deviceFilter(device)],
         },
       },
       size: 0,

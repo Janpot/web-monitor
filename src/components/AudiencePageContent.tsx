@@ -17,16 +17,13 @@ import {
   Select,
   Paper,
   Box,
-  RadioGroup,
-  FormControlLabel,
-  makeStyles,
-  Radio,
+  FormControl,
 } from '@material-ui/core';
 import {
   WebVitalsPeriod,
   AudienceOverviewData,
   AudienceCountriesData,
-  WebVitalsDevice,
+  DeviceSelection,
 } from '../types';
 import PropertyToolbar from './PropertyToolbar';
 import Layout from './Layout';
@@ -40,6 +37,7 @@ import {
 } from '../pages/api/data';
 import { useSwrFn } from '../lib/swr';
 import dynamic from 'next/dynamic';
+import DeviceSelector from './DeviceSelector';
 
 const WorldMap = dynamic(() => import('./WorldMap'));
 
@@ -90,12 +88,6 @@ const METRICS = {
     unit: '%',
   } as MetricDescriptor,
 };
-
-const useStyles = makeStyles((theme) => ({
-  toolbarControl: {
-    marginLeft: theme.spacing(2),
-  },
-}));
 
 const dateFormat = new Intl.DateTimeFormat('en', {
   day: 'numeric',
@@ -264,9 +256,8 @@ interface PropertyProps {
 }
 
 export default function PropertyPageContent({ propertyId }: PropertyProps) {
-  const classes = useStyles();
   const [period, setPeriod] = React.useState<WebVitalsPeriod>('day');
-  const [device, setDevice] = React.useState<WebVitalsDevice>('mobile');
+  const [device, setDevice] = React.useState<DeviceSelection>('all');
 
   const [activeTab, setActiveTab] = React.useState<VisitorsMetric>('pageviews');
   const tabProps = (metric: VisitorsMetric): VisitorsMetricTabProps => ({
@@ -282,12 +273,12 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
   );
 
   const { data: overviewData } = useSwrFn(
-    propertyId ? [propertyId, period] : null,
+    propertyId ? [propertyId, period, device] : null,
     getAudienceOverview
   );
 
   const { data: countriesData } = useSwrFn(
-    propertyId ? [propertyId, period] : null,
+    propertyId ? [propertyId, period, device] : null,
     getAudienceCountries
   );
 
@@ -302,31 +293,16 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
     <Layout activeTab="audience" property={property}>
       <Container>
         <PropertyToolbar property={property}>
-          <RadioGroup
-            className={classes.toolbarControl}
-            row
-            value={device}
-            onChange={(e) => setDevice(e.target.value as WebVitalsDevice)}
-          >
-            <FormControlLabel
-              value="mobile"
-              control={<Radio />}
-              label="Mobile"
-            />
-            <FormControlLabel
-              value="desktop"
-              control={<Radio />}
-              label="Desktop"
-            />
-          </RadioGroup>
-          <Select
-            variant="outlined"
-            value={period}
-            onChange={(e) => setPeriod(e.target.value as WebVitalsPeriod)}
-          >
-            <MenuItem value="day">Last 24h</MenuItem>
-            <MenuItem value="month">Last Month</MenuItem>
-          </Select>
+          <DeviceSelector value={device} onChange={setDevice} />
+          <FormControl variant="outlined" size="small">
+            <Select
+              value={period}
+              onChange={(e) => setPeriod(e.target.value as WebVitalsPeriod)}
+            >
+              <MenuItem value="day">Last 24h</MenuItem>
+              <MenuItem value="month">Last Month</MenuItem>
+            </Select>
+          </FormControl>
         </PropertyToolbar>
         <Grid container spacing={4}>
           <Grid item xs={12}>

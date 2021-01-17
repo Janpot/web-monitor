@@ -3,7 +3,7 @@ import { ReferralsSourcesData, WebVitalsPeriod } from '../../types';
 import { propertyFilter, periodFilter } from './utils';
 interface AudienceSourcesParams {
   property: string;
-  period: WebVitalsPeriod;
+  period?: WebVitalsPeriod;
 }
 
 export default async function getReferralsSources(

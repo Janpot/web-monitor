@@ -1,16 +1,21 @@
 import { Client } from '@elastic/elasticsearch';
-import { AudienceCountriesData, WebVitalsPeriod } from '../../types';
-import { propertyFilter, periodFilter } from './utils';
+import {
+  AudienceCountriesData,
+  DeviceSelection,
+  WebVitalsPeriod,
+} from '../../types';
+import { propertyFilter, periodFilter, deviceFilter } from './utils';
 import { alpha2ToNumeric, getName } from 'i18n-iso-countries';
 
-interface AudienceSourcesParams {
+interface AudienceCountriesParams {
   property: string;
-  period: WebVitalsPeriod;
+  period?: WebVitalsPeriod;
+  device?: DeviceSelection;
 }
 
-export default async function getAudienceSources(
+export default async function getAudienceCountries(
   client: Client,
-  { property, period = 'day' }: AudienceSourcesParams
+  { property, period = 'day', device = 'all' }: AudienceCountriesParams
 ): Promise<AudienceCountriesData> {
   const now = Date.now();
 
@@ -19,7 +24,11 @@ export default async function getAudienceSources(
     body: {
       query: {
         bool: {
-          filter: [propertyFilter(property), periodFilter(now, period)],
+          filter: [
+            propertyFilter(property),
+            deviceFilter(device),
+            periodFilter(now, period),
+          ],
         },
       },
       size: 0,

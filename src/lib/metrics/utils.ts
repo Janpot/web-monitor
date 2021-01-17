@@ -1,5 +1,5 @@
 import {
-  WebVitalsDevice,
+  DeviceSelection,
   WebVitalsPercentiles,
   WebVitalsPeriod,
   WebVitalsValues,
@@ -13,13 +13,19 @@ export function propertyFilter(property: string) {
   };
 }
 
-export function deviceFilter(device: WebVitalsDevice) {
-  return {
-    terms: {
-      device:
-        device === 'mobile' ? ['smartphone', 'tablet', 'phablet'] : [device],
-    },
-  };
+export function deviceFilter(device: DeviceSelection = 'all') {
+  return device === 'all'
+    ? {
+        match_all: {},
+      }
+    : {
+        terms: {
+          device:
+            device === 'mobile'
+              ? ['smartphone', 'tablet', 'phablet']
+              : [device],
+        },
+      };
 }
 
 export function subtractPeriod(date: number, period: WebVitalsPeriod) {

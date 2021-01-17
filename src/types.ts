@@ -19,7 +19,8 @@ export interface Property {
 }
 
 export type WebVitalsPeriod = 'day' | 'month';
-export type WebVitalsDevice = 'mobile' | 'desktop';
+export type Device = 'mobile' | 'desktop';
+export type DeviceSelection = Device | 'all';
 
 export type WebVitalsMetric = 'FCP' | 'LCP' | 'FID' | 'TTFB' | 'CLS';
 export type AudienceMetric =
@@ -77,7 +78,7 @@ export interface WebVitalsBucket extends WebVitalsValues {
 
 export interface WebVitalsOverviewData {
   period: WebVitalsPeriod;
-  device: WebVitalsDevice;
+  device: DeviceSelection;
   current: WebVitalsValues;
   previous: WebVitalsValues;
   histogram: WebVitalsBucket[];

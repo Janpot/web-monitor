@@ -1,5 +1,5 @@
 import { Client } from '@elastic/elasticsearch';
-import { WebVitalsMetric, WebVitalsDevice, WebVitalsPeriod } from '../../types';
+import { WebVitalsMetric, DeviceSelection, WebVitalsPeriod } from '../../types';
 import {
   propertyFilter,
   deviceFilter,
@@ -12,12 +12,12 @@ interface GetWebVitalsPagesParams {
   property: string;
   metric: WebVitalsMetric;
   period?: WebVitalsPeriod;
-  device?: WebVitalsDevice;
+  device?: DeviceSelection;
 }
 
 export default async function getWebVitalsPages(
   client: Client,
-  { property, metric, device, period = 'day' }: GetWebVitalsPagesParams
+  { property, metric, device = 'all', period = 'day' }: GetWebVitalsPagesParams
 ) {
   const end = Date.now();
   const response = await client.search({
@@ -27,7 +27,7 @@ export default async function getWebVitalsPages(
         bool: {
           filter: [
             propertyFilter(property),
-            device ? deviceFilter(device) : { match_all: {} },
+            deviceFilter(device),
             periodFilter(end, period),
           ],
         },

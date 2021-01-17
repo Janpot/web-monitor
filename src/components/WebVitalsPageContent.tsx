@@ -12,10 +12,7 @@ import {
 } from 'recharts';
 import {
   Box,
-  FormControlLabel,
   MenuItem,
-  Radio,
-  RadioGroup,
   Select,
   Typography,
   useTheme,
@@ -29,9 +26,10 @@ import {
   TableHead,
   TableRow,
   Container,
+  FormControl,
 } from '@material-ui/core';
 import {
-  WebVitalsDevice,
+  DeviceSelection,
   WebVitalsMetric,
   WebVitalsOverviewData,
   WebVitalsPagesData,
@@ -51,14 +49,12 @@ import {
   getProperty,
 } from '../pages/api/data';
 import { useSwrFn } from '../lib/swr';
+import DeviceSelector from './DeviceSelector';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 const useStyles = makeStyles((theme) =>
   createStyles({
-    toolbarControl: {
-      marginLeft: theme.spacing(2),
-    },
     bad: {},
     good: {},
     valueCell: {
@@ -426,9 +422,8 @@ interface PropertyProps {
 }
 
 export default function PropertyPageContent({ propertyId }: PropertyProps) {
-  const classes = useStyles();
   const [percentile, setPercentile] = React.useState<Percentile>('p75');
-  const [device, setDevice] = React.useState<WebVitalsDevice>('mobile');
+  const [device, setDevice] = React.useState<DeviceSelection>('all');
   const [period, setPeriod] = React.useState<WebVitalsPeriod>('day');
   const [activeTab, setActiveTab] = React.useState<WebVitalsMetric>('FCP');
 
@@ -451,42 +446,26 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
     <Layout activeTab="webVitals" property={property}>
       <Container>
         <PropertyToolbar property={property}>
-          <Select
-            className={classes.toolbarControl}
-            variant="outlined"
-            value={percentile}
-            onChange={(e) => setPercentile(e.target.value as Percentile)}
-          >
-            <MenuItem value="p75">75th percentile</MenuItem>
-            <MenuItem value="p90">90th percentile</MenuItem>
-            <MenuItem value="p99">99th percentile</MenuItem>
-          </Select>
-          <RadioGroup
-            className={classes.toolbarControl}
-            row
-            value={device}
-            onChange={(e) => setDevice(e.target.value as WebVitalsDevice)}
-          >
-            <FormControlLabel
-              value="mobile"
-              control={<Radio />}
-              label="Mobile"
-            />
-            <FormControlLabel
-              value="desktop"
-              control={<Radio />}
-              label="Desktop"
-            />
-          </RadioGroup>
-          <Select
-            className={classes.toolbarControl}
-            variant="outlined"
-            value={period}
-            onChange={(e) => setPeriod(e.target.value as WebVitalsPeriod)}
-          >
-            <MenuItem value="day">Last 24h</MenuItem>
-            <MenuItem value="month">Last Month</MenuItem>
-          </Select>
+          <FormControl variant="outlined" size="small">
+            <Select
+              value={percentile}
+              onChange={(e) => setPercentile(e.target.value as Percentile)}
+            >
+              <MenuItem value="p75">75th percentile</MenuItem>
+              <MenuItem value="p90">90th percentile</MenuItem>
+              <MenuItem value="p99">99th percentile</MenuItem>
+            </Select>
+          </FormControl>
+          <DeviceSelector value={device} onChange={setDevice} />
+          <FormControl variant="outlined" size="small">
+            <Select
+              value={period}
+              onChange={(e) => setPeriod(e.target.value as WebVitalsPeriod)}
+            >
+              <MenuItem value="day">Last 24h</MenuItem>
+              <MenuItem value="month">Last Month</MenuItem>
+            </Select>
+          </FormControl>
         </PropertyToolbar>
         <Box my={3}>
           <WebVitalsTabs

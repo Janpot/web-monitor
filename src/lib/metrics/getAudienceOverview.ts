@@ -2,9 +2,15 @@ import { Client } from '@elastic/elasticsearch';
 import {
   AudienceOverviewData,
   AudienceOverviewMetrics,
+  DeviceSelection,
   WebVitalsPeriod,
 } from '../../types';
-import { propertyFilter, periodFilter, dateHistogram } from './utils';
+import {
+  propertyFilter,
+  periodFilter,
+  dateHistogram,
+  deviceFilter,
+} from './utils';
 
 export function mapAudienceOverviewAggregations(
   agg: any
@@ -22,12 +28,13 @@ export function mapAudienceOverviewAggregations(
 
 interface AudienceOverviewParams {
   property: string;
-  period: WebVitalsPeriod;
+  period?: WebVitalsPeriod;
+  device?: DeviceSelection;
 }
 
 export default async function getAudienceOverview(
   client: Client,
-  { property, period = 'day' }: AudienceOverviewParams
+  { property, period = 'day', device = 'all' }: AudienceOverviewParams
 ): Promise<AudienceOverviewData> {
   const now = Date.now();
   const aggregations = {
@@ -55,7 +62,11 @@ export default async function getAudienceOverview(
     body: {
       query: {
         bool: {
-          filter: [propertyFilter(property), periodFilter(now, period)],
+          filter: [
+            propertyFilter(property),
+            deviceFilter(device),
+            periodFilter(now, period),
+          ],
         },
       },
       size: 0,

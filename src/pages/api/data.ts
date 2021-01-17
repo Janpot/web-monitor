@@ -2,7 +2,7 @@ import { getSession } from 'next-auth/client';
 import { getContext } from 'next-rpc/context';
 import {
   WebVitalsPeriod,
-  WebVitalsDevice,
+  DeviceSelection,
   WebVitalsMetric,
   AudienceMetric,
 } from '../../types';
@@ -13,7 +13,7 @@ export const config = { rpc: true };
 
 export async function getWebVitalsOverview(
   property: string,
-  device: WebVitalsDevice,
+  device: DeviceSelection,
   period: WebVitalsPeriod
 ) {
   const { req } = getContext();
@@ -31,7 +31,7 @@ export async function getWebVitalsOverview(
 export async function getWebVitalsPages(
   property: string,
   metric: WebVitalsMetric,
-  device: WebVitalsDevice,
+  device: DeviceSelection,
   period: WebVitalsPeriod
 ) {
   const { req } = getContext();
@@ -50,7 +50,7 @@ export async function getWebVitalsPages(
 export async function getAudiencePages(
   property: string,
   metric: AudienceMetric,
-  device: WebVitalsDevice,
+  device: DeviceSelection,
   period: WebVitalsPeriod
 ) {
   const { req } = getContext();
@@ -68,7 +68,8 @@ export async function getAudiencePages(
 
 export async function getAudienceOverview(
   property: string,
-  period: WebVitalsPeriod
+  period: WebVitalsPeriod,
+  device: DeviceSelection
 ) {
   const { req } = getContext();
   const session = await getSession({ req });
@@ -78,6 +79,7 @@ export async function getAudienceOverview(
   return metrics.getAudienceOverview(metrics.getClient(), {
     property,
     period,
+    device,
   });
 }
 
@@ -99,7 +101,8 @@ export async function getReferralsSources(
 
 export async function getAudienceCountries(
   property: string,
-  period: WebVitalsPeriod
+  period: WebVitalsPeriod,
+  device: DeviceSelection
 ) {
   const { req } = getContext();
   const session = await getSession({ req });
@@ -110,6 +113,7 @@ export async function getAudienceCountries(
   return metrics.getAudienceCountries(metrics.getClient(), {
     property,
     period,
+    device,
   });
 }
 

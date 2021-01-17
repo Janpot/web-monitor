@@ -1,5 +1,5 @@
 import { Client } from '@elastic/elasticsearch';
-import { WebVitalsDevice, WebVitalsPeriod, AudienceMetric } from '../../types';
+import { DeviceSelection, WebVitalsPeriod, AudienceMetric } from '../../types';
 import { invariant } from '../invariant';
 import { mapAudienceOverviewAggregations } from './getAudienceOverview';
 import { propertyFilter, deviceFilter, periodFilter } from './utils';
@@ -23,12 +23,12 @@ interface GetAudiencePagesParams {
   property: string;
   metric: AudienceMetric;
   period?: WebVitalsPeriod;
-  device?: WebVitalsDevice;
+  device?: DeviceSelection;
 }
 
 export default async function getAudiencePages(
   client: Client,
-  { property, metric, device, period = 'day' }: GetAudiencePagesParams
+  { property, metric, device = 'all', period = 'day' }: GetAudiencePagesParams
 ) {
   const end = Date.now();
   const response = await client
@@ -39,7 +39,7 @@ export default async function getAudiencePages(
           bool: {
             filter: [
               propertyFilter(property),
-              device ? deviceFilter(device) : { match_all: {} },
+              deviceFilter(device),
               periodFilter(end, period),
             ],
           },
