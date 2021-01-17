@@ -18,12 +18,19 @@ import {
   Paper,
   Box,
   FormControl,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from '@material-ui/core';
 import {
   WebVitalsPeriod,
   AudienceOverviewData,
   AudienceCountriesData,
   DeviceSelection,
+  AudiencePagesData,
 } from '../types';
 import PropertyToolbar from './PropertyToolbar';
 import Layout from './Layout';
@@ -251,6 +258,41 @@ function AudienceCountries({ data }: AudienceCountriesProps) {
   );
 }
 
+interface AudiencePagesProps {
+  data?: AudiencePagesData;
+}
+
+function AudiencePages({ data }: AudiencePagesProps) {
+  return (
+    <TableContainer>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Url</TableCell>
+            <TableCell align="right">Samples</TableCell>
+            <TableCell align="right">Pageviews</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {data?.pages.map((bucket) => (
+            <TableRow key={bucket.page}>
+              <TableCell component="th" scope="row">
+                {bucket.page}
+              </TableCell>
+              <TableCell align="right">
+                {numberFormatCompact.format(bucket.samples)}
+              </TableCell>
+              <TableCell align="right">
+                {numberFormatCompact.format(bucket.pageviews)}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+}
+
 interface PropertyProps {
   propertyId?: string;
 }
@@ -282,12 +324,10 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
     getAudienceCountries
   );
 
-  const { data: pagesData, error } = useSwrFn(
-    propertyId ? [propertyId, activeTab, device, period] : null,
+  const { data: pagesData } = useSwrFn(
+    propertyId ? [propertyId, device, period] : null,
     getAudiencePages
   );
-
-  console.log(pagesData, error);
 
   return (
     <Layout activeTab="audience" property={property}>
@@ -327,6 +367,14 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
                 />
               </Grid>
             </PaperTabContent>
+          </Grid>
+          <Grid item xs={12}>
+            <Paper>
+              <Box p={2}>
+                <Typography variant="h6">By Page</Typography>
+                <AudiencePages data={pagesData} />
+              </Box>
+            </Paper>
           </Grid>
           <Grid item xs={12}>
             <Paper>

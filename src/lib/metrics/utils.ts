@@ -5,6 +5,8 @@ import {
   WebVitalsValues,
 } from '../../types';
 
+const MATCH_ALL = { match_all: {} };
+
 export function propertyFilter(property: string) {
   return {
     term: {
@@ -15,9 +17,7 @@ export function propertyFilter(property: string) {
 
 export function deviceFilter(device: DeviceSelection = 'all') {
   return device === 'all'
-    ? {
-        match_all: {},
-      }
+    ? MATCH_ALL
     : {
         terms: {
           device:

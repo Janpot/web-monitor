@@ -41,6 +41,14 @@ export interface AudienceOverviewHistogramBucket
   timestamp: number;
 }
 
+export interface AudiencePagesData {
+  pages: {
+    page: string;
+    samples: number;
+    pageviews: number;
+  }[];
+}
+
 export interface AudienceOverviewData extends AudienceOverviewMetrics {
   histogram: AudienceOverviewHistogramBucket[];
 }
