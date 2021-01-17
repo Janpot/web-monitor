@@ -144,6 +144,11 @@ async function initialize(
                 field: 'session',
               },
             },
+            property: {
+              terms: {
+                field: 'property',
+              },
+            },
           },
           aggregations: {
             pageviews: { value_count: { field: 'location.href' } },
