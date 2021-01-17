@@ -326,7 +326,7 @@ function WebVitalsPages({ data, percentile, metric }: WebVitalsPagesProps) {
     <>
       <Typography variant="h6">By page</Typography>
       <TableContainer>
-        <Table>
+        <Table size="small">
           <TableHead>
             <TableRow>
               <TableCell>Url</TableCell>

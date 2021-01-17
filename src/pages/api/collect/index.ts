@@ -8,12 +8,22 @@ import * as uuid from 'uuid';
 import { lookup as lookupCountryByIp } from 'geoip-country';
 import { parse as parseRefererHeader } from '../../../lib/referer';
 
+const UTM_PARAMS = ['source', 'medium', 'term', 'campaign', 'content'] as const;
+
+const DEFAULT_IGNORED_PARAMS = ['cpc', 'fbclid'];
+
 const deviceDetector = new DeviceDetector();
 
 function cleanUrl(property: Property, urlIn: URL): URL {
   const url = new URL(urlIn.href);
   for (const param of property.ignoredQueryParams) {
     url.searchParams.delete(param);
+  }
+  for (const param of DEFAULT_IGNORED_PARAMS) {
+    url.searchParams.delete(param);
+  }
+  for (const param of UTM_PARAMS) {
+    url.searchParams.delete(`utm_${param}`);
   }
   url.searchParams.sort();
   return url;
@@ -22,8 +32,6 @@ function cleanUrl(property: Property, urlIn: URL): URL {
 function getIpAddress(req: NextApiRequest): string | undefined {
   return getValue(req.headers, 'x-forwarded-for') || req.socket.remoteAddress;
 }
-
-const UTM_PARAMS = ['source', 'medium', 'term', 'campaign', 'content'] as const;
 
 function extractUtm(url: URL): Referral | undefined {
   const entries: [typeof UTM_PARAMS[number], string][] = [];

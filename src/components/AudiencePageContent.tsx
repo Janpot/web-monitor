@@ -24,6 +24,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TableSortLabel,
 } from '@material-ui/core';
 import {
   WebVitalsPeriod,
@@ -31,6 +32,8 @@ import {
   AudienceCountriesData,
   DeviceSelection,
   AudiencePagesData,
+  AudiencePagesOrder,
+  OrderDirection,
 } from '../types';
 import PropertyToolbar from './PropertyToolbar';
 import Layout from './Layout';
@@ -258,19 +261,45 @@ function AudienceCountries({ data }: AudienceCountriesProps) {
   );
 }
 
-interface AudiencePagesProps {
-  data?: AudiencePagesData;
+function reverseDirection(direction: OrderDirection): OrderDirection {
+  return direction === 'asc' ? 'desc' : 'asc';
 }
 
-function AudiencePages({ data }: AudiencePagesProps) {
+interface AudiencePagesProps {
+  data?: AudiencePagesData;
+  order: AudiencePagesOrder;
+  onOrderChange: (newOrder: AudiencePagesOrder) => void;
+}
+
+function AudiencePages({ data, order, onOrderChange }: AudiencePagesProps) {
+  const sortLabelProps = (column: AudiencePagesOrder['column']) => {
+    const active = order.column === column;
+    return {
+      active,
+      direction: order.direction,
+      onClick: () =>
+        onOrderChange({
+          column,
+          direction: active ? reverseDirection(order.direction) : 'desc',
+        }),
+    };
+  };
   return (
     <TableContainer>
-      <Table>
+      <Table size="small">
         <TableHead>
           <TableRow>
             <TableCell>Url</TableCell>
-            <TableCell align="right">Samples</TableCell>
-            <TableCell align="right">Pageviews</TableCell>
+            <TableCell align="right">
+              <TableSortLabel {...sortLabelProps('pageviews')}>
+                Pageviews
+              </TableSortLabel>
+            </TableCell>
+            <TableCell align="right">
+              <TableSortLabel {...sortLabelProps('duration')}>
+                Duration
+              </TableSortLabel>
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -280,10 +309,12 @@ function AudiencePages({ data }: AudiencePagesProps) {
                 {bucket.page}
               </TableCell>
               <TableCell align="right">
-                {numberFormatCompact.format(bucket.samples)}
+                {METRICS.pageviews.format(bucket.pageviews)}{' '}
+                {METRICS.pageviews.unit}
               </TableCell>
               <TableCell align="right">
-                {numberFormatCompact.format(bucket.pageviews)}
+                {METRICS.duration.format(bucket.duration)}{' '}
+                {METRICS.duration.unit}
               </TableCell>
             </TableRow>
           ))}
@@ -300,6 +331,10 @@ interface PropertyProps {
 export default function PropertyPageContent({ propertyId }: PropertyProps) {
   const [period, setPeriod] = React.useState<WebVitalsPeriod>('day');
   const [device, setDevice] = React.useState<DeviceSelection>('all');
+  const [pagesOrder, setPagesOrder] = React.useState<AudiencePagesOrder>({
+    column: 'pageviews',
+    direction: 'desc',
+  });
 
   const [activeTab, setActiveTab] = React.useState<VisitorsMetric>('pageviews');
   const tabProps = (metric: VisitorsMetric): VisitorsMetricTabProps => ({
@@ -325,7 +360,7 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
   );
 
   const { data: pagesData } = useSwrFn(
-    propertyId ? [propertyId, device, period] : null,
+    propertyId ? [propertyId, device, period, pagesOrder] : null,
     getAudiencePages
   );
 
@@ -371,8 +406,12 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
           <Grid item xs={12}>
             <Paper>
               <Box p={2}>
-                <Typography variant="h6">By Page</Typography>
-                <AudiencePages data={pagesData} />
+                <Typography variant="h6">Popular Pages</Typography>
+                <AudiencePages
+                  data={pagesData}
+                  order={pagesOrder}
+                  onOrderChange={setPagesOrder}
+                />
               </Box>
             </Paper>
           </Grid>

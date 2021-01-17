@@ -21,6 +21,7 @@ export interface Property {
 export type WebVitalsPeriod = 'day' | 'month';
 export type Device = 'mobile' | 'desktop';
 export type DeviceSelection = Device | 'all';
+export type OrderDirection = 'asc' | 'desc';
 
 export type WebVitalsMetric = 'FCP' | 'LCP' | 'FID' | 'TTFB' | 'CLS';
 export type AudienceMetric =
@@ -41,11 +42,17 @@ export interface AudienceOverviewHistogramBucket
   timestamp: number;
 }
 
+export interface AudiencePagesOrder {
+  column: 'pageviews' | 'duration';
+  direction: OrderDirection;
+}
+
 export interface AudiencePagesData {
   pages: {
     page: string;
     samples: number;
     pageviews: number;
+    duration: number;
   }[];
 }
 

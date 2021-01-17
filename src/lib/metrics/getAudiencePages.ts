@@ -3,18 +3,36 @@ import {
   DeviceSelection,
   WebVitalsPeriod,
   AudiencePagesData,
+  AudiencePagesOrder,
 } from '../../types';
 import { propertyFilter, deviceFilter, periodFilter } from './utils';
+
+function getAggregationOrder(order: AudiencePagesOrder) {
+  switch (order.column) {
+    case 'pageviews':
+      return { ['pageview_count.value']: order.direction };
+    case 'duration':
+      return { ['avg_visible.value']: order.direction };
+    default:
+      throw new Error(`Invalid order column "${order.column}"`);
+  }
+}
 
 interface GetAudiencePagesParams {
   property: string;
   period?: WebVitalsPeriod;
   device?: DeviceSelection;
+  order?: AudiencePagesOrder;
 }
 
 export default async function getAudiencePages(
   client: Client,
-  { property, device = 'all', period = 'day' }: GetAudiencePagesParams
+  {
+    property,
+    device = 'all',
+    period = 'day',
+    order = { column: 'pageviews', direction: 'desc' },
+  }: GetAudiencePagesParams
 ): Promise<AudiencePagesData> {
   const end = Date.now();
   const response = await client
@@ -37,14 +55,15 @@ export default async function getAudiencePages(
               field: 'location.href',
               size: 10,
               // Let's make sure the result has some statistical relevance
-              min_doc_count: 5,
-              order: {
-                ['pageview_count.value']: 'desc',
-              },
+              min_doc_count: order.direction === 'asc' ? 1 : 5,
+              order: getAggregationOrder(order),
             },
             aggs: {
               pageview_count: {
                 value_count: { field: 'session' },
+              },
+              avg_visible: {
+                avg: { field: 'visible' },
               },
             },
           },
@@ -61,6 +80,7 @@ export default async function getAudiencePages(
       samples: bucket.doc_count,
       page: bucket.key,
       pageviews: bucket.pageview_count.value,
+      duration: bucket.avg_visible.value,
     })),
   };
 }

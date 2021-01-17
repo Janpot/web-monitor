@@ -1,6 +1,11 @@
 import { getSession } from 'next-auth/client';
 import { getContext } from 'next-rpc/context';
-import { WebVitalsPeriod, DeviceSelection, WebVitalsMetric } from '../../types';
+import {
+  WebVitalsPeriod,
+  DeviceSelection,
+  WebVitalsMetric,
+  AudiencePagesOrder,
+} from '../../types';
 import * as metrics from '../../lib/metrics';
 import * as usersData from '../../lib/users';
 
@@ -45,7 +50,8 @@ export async function getWebVitalsPages(
 export async function getAudiencePages(
   property: string,
   device: DeviceSelection,
-  period: WebVitalsPeriod
+  period: WebVitalsPeriod,
+  order: AudiencePagesOrder
 ) {
   const { req } = getContext();
   const session = await getSession({ req });
@@ -56,6 +62,7 @@ export async function getAudiencePages(
     property,
     device,
     period,
+    order,
   });
 }
 
