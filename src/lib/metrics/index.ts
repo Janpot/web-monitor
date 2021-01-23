@@ -1,5 +1,14 @@
 import { Client } from '@elastic/elasticsearch';
 import { SerializedPageMetrics } from '../../types';
+import { BigQuery } from '@google-cloud/bigquery';
+
+const bigqueryClient = new BigQuery({
+  projectId: 'web-monitor-299815',
+  credentials: {
+    client_email: process.env.GCP_CLIENT_EMAIL,
+    private_key: process.env.GCP_CLIENT_PRIVATE_KEY,
+  },
+});
 
 /**
  * Time (in ms) after which a user's session expires if no new visits
@@ -211,6 +220,31 @@ export async function addMetric(
       ...event,
     },
   });
+
+  await bigqueryClient
+    .dataset('visitors')
+    .table('pageviews')
+    .insert({
+      property: event.property,
+      visitor: {
+        browser: event.browser,
+        device: event.device,
+        connection: event.connection,
+        country: event.country,
+        ip: event.ip,
+      },
+      location: event.location,
+      referral: event.referral,
+      metrics: {
+        visible: event.visible,
+        duration: event.duration,
+        CLS: event.CLS,
+        FCP: event.FCP,
+        FID: event.FID,
+        LCP: event.LCP,
+        TTFB: event.TTFB,
+      },
+    });
 }
 
 export function getClient() {
