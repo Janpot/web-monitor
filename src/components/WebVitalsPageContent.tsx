@@ -444,7 +444,7 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
   );
 
   return (
-    <Layout activeTab="webVitals" property={property}>
+    <Layout activePage="webVitals" property={property}>
       <Container>
         <PropertyToolbar property={property}>
           <FormControl variant="outlined" size="small">

@@ -18,12 +18,16 @@ import { Property } from '../types';
 import HomeIcon from '@material-ui/icons/Home';
 
 export interface LayoutProps {
-  activeTab?: 'audience' | 'webVitals' | 'referrals';
+  activePage?: 'home' | 'audience' | 'webVitals' | 'referrals';
   property?: Property | null;
   children?: React.ReactNode;
 }
 
-export default function Layout({ property, children, activeTab }: LayoutProps) {
+export default function Layout({
+  property,
+  children,
+  activePage,
+}: LayoutProps) {
   const [session, loading] = useSession();
 
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
@@ -47,48 +51,52 @@ export default function Layout({ property, children, activeTab }: LayoutProps) {
     <>
       <Container>
         <Toolbar disableGutters>
-          <Box
-            display="flex"
-            flexGrow={1}
-            flexBasis={0}
-            justifyContent="flex-start"
-          >
-            {activeTab && (
-              <Tabs value={activeTab}>
-                <Tab
-                  value="audience"
-                  disabled={!property}
-                  component={Anchor}
-                  href={property ? `/property/${property.id}/audience` : '/'}
-                  label="Audience"
-                />
-                <Tab
-                  value="webVitals"
-                  disabled={!property}
-                  component={Anchor}
-                  href={property ? `/property/${property.id}/web-vitals` : '/'}
-                  label="Web Vitals"
-                />
-                <Tab
-                  value="referrals"
-                  disabled={!property}
-                  component={Anchor}
-                  href={property ? `/property/${property.id}/referrals` : '/'}
-                  label="Referrals"
-                />
-              </Tabs>
-            )}
-          </Box>
-          <Box
-            display="flex"
-            flexGrow={1}
-            flexBasis={0}
-            justifyContent="center"
-          >
-            <IconButton component={Anchor} href="/">
-              <HomeIcon />
-            </IconButton>
-          </Box>
+          {activePage !== 'home' && (
+            <>
+              <Box
+                display="flex"
+                flexGrow={1}
+                flexBasis={0}
+                justifyContent="flex-start"
+              >
+                <Tabs value={activePage}>
+                  <Tab
+                    value="audience"
+                    disabled={!property}
+                    component={Anchor}
+                    href={property ? `/property/${property.id}/audience` : '/'}
+                    label="Audience"
+                  />
+                  <Tab
+                    value="webVitals"
+                    disabled={!property}
+                    component={Anchor}
+                    href={
+                      property ? `/property/${property.id}/web-vitals` : '/'
+                    }
+                    label="Web Vitals"
+                  />
+                  <Tab
+                    value="referrals"
+                    disabled={!property}
+                    component={Anchor}
+                    href={property ? `/property/${property.id}/referrals` : '/'}
+                    label="Referrals"
+                  />
+                </Tabs>
+              </Box>
+              <Box
+                display="flex"
+                flexGrow={1}
+                flexBasis={0}
+                justifyContent="center"
+              >
+                <IconButton component={Anchor} href="/">
+                  <HomeIcon />
+                </IconButton>
+              </Box>
+            </>
+          )}
           <Box
             display="flex"
             flexGrow={1}

@@ -365,7 +365,7 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
   );
 
   return (
-    <Layout activeTab="audience" property={property}>
+    <Layout activePage="audience" property={property}>
       <Container>
         <PropertyToolbar property={property}>
           <DeviceSelector value={device} onChange={setDevice} />

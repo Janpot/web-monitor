@@ -59,7 +59,7 @@ export default function PropertyPageContent({ propertyId }: PropertyProps) {
   );
 
   return (
-    <Layout activeTab="referrals" property={property}>
+    <Layout activePage="referrals" property={property}>
       <Container>
         <PropertyToolbar property={property}>
           <Select

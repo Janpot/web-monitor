@@ -17,14 +17,17 @@ import {
   DialogContent,
   DialogContentText,
   TextField,
+  Typography,
 } from '@material-ui/core';
 import { Property } from '../types';
 import FaviconAvatar from './FaviconAvatar';
 import AddIcon from '@material-ui/icons/Add';
 
 const useStyles = makeStyles((theme) => ({
-  root: {
-    marginTop: theme.spacing(3),
+  listTitle: {
+    padding: theme.spacing(2),
+  },
+  listContainer: {
     position: 'relative',
   },
   fab: {
@@ -83,28 +86,33 @@ function PropertiesList({ properties }: PropertiesListProps) {
   );
   const classes = useStyles();
   return (
-    <div className={classes.root}>
-      <List component={Paper}>
-        {properties.map((property) => (
-          <ListItem
-            key={property.id}
-            button
-            component={Link}
-            href={`/property/${property.id}/audience`}
-          >
-            <ListItemAvatar>
-              <FaviconAvatar url={property.name} />
-            </ListItemAvatar>
-            <ListItemText primary={property.name} secondary={property.id} />
-          </ListItem>
-        ))}
-      </List>
-      <Fab
-        className={classes.fab}
-        onClick={() => setNewProperttDialogOpen(true)}
-      >
-        <AddIcon />
-      </Fab>
+    <div>
+      <Typography variant="h5" className={classes.listTitle}>
+        Properties
+      </Typography>
+      <div className={classes.listContainer}>
+        <List component={Paper}>
+          {properties.map((property) => (
+            <ListItem
+              key={property.id}
+              button
+              component={Link}
+              href={`/property/${property.id}/audience`}
+            >
+              <ListItemAvatar>
+                <FaviconAvatar url={property.name} />
+              </ListItemAvatar>
+              <ListItemText primary={property.name} secondary={property.id} />
+            </ListItem>
+          ))}
+        </List>
+        <Fab
+          className={classes.fab}
+          onClick={() => setNewProperttDialogOpen(true)}
+        >
+          <AddIcon />
+        </Fab>
+      </div>
       <NewPropertyDialog
         open={newPropertyFialogOpen}
         onClose={() => setNewProperttDialogOpen(false)}
