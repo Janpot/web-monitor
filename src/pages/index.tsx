@@ -6,7 +6,7 @@ import { Container } from '@material-ui/core';
 export default function Page() {
   return (
     <Layout>
-      <Container>
+      <Container maxWidth="sm">
         <Properties />
       </Container>
     </Layout>

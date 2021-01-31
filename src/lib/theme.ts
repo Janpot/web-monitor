@@ -1,5 +1,5 @@
 import { createMuiTheme } from '@material-ui/core/styles';
-import { red, grey, cyan } from '@material-ui/core/colors';
+import { grey, cyan, blue, pink, deepOrange } from '@material-ui/core/colors';
 import { buildChartTheme, XYChartTheme } from '@visx/xychart';
 
 declare module '@material-ui/core' {
@@ -13,16 +13,13 @@ const theme = createMuiTheme({
   palette: {
     type: 'dark',
     primary: {
-      main: '#556cd6',
+      main: blue[200],
     },
     secondary: {
-      main: '#19857b',
+      main: pink[200],
     },
     error: {
-      main: red.A400,
-    },
-    background: {
-      //default: '#fff',
+      main: deepOrange.A400,
     },
   },
 });

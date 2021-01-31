@@ -30,9 +30,10 @@ function AudienceSources({ data }: AudienceSourcesProps) {
     <div>
       <RankedBars
         data={
-          data?.sources
-            ?.map((bucket) => ({ label: bucket.source, value: bucket.count }))
-            .reverse() || []
+          data?.sources?.map((bucket) => ({
+            label: bucket.source,
+            value: bucket.count,
+          })) || []
         }
         formatValue={numberFormatCompact.format}
       />

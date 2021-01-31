@@ -269,12 +269,13 @@ function WebVitalsOverview({
 
   return (
     <>
-      <WebVitalOverviewChart
-        name={metric}
-        histogram={histogram}
-        period={period}
-      />
-      {false && (
+      {true ? (
+        <WebVitalOverviewChart
+          name={metric}
+          histogram={histogram}
+          period={period}
+        />
+      ) : (
         <LineChart2
           data={histogram.map((x) => ({ timestamp: x.key, value: x.value }))}
           width={900}

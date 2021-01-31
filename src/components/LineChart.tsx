@@ -98,7 +98,7 @@ export default function LineChart<D extends Datum>({
   const numTicks = 5;
 
   return (
-    <div>
+    <div style={{ display: 'block', position: 'relative' }}>
       <XYChart
         margin={{ top: 50, right: 20, bottom: 50, left: 50 }}
         xScale={{ type: 'time' }}
