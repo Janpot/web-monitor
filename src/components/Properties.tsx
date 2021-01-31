@@ -18,6 +18,7 @@ import {
   DialogContentText,
   TextField,
   Typography,
+  CircularProgress,
 } from '@material-ui/core';
 import { Property } from '../types';
 import FaviconAvatar from './FaviconAvatar';
@@ -34,6 +35,13 @@ const useStyles = makeStyles((theme) => ({
     position: 'absolute',
     top: -theme.spacing(3),
     right: theme.spacing(2),
+  },
+  loader: {
+    display: 'block',
+    margin: theme.spacing(2, 'auto'),
+  },
+  emptyList: {
+    margin: theme.spacing(2),
   },
 }));
 
@@ -77,42 +85,55 @@ function NewPropertyDialog({ open, onClose }: NewPropertyDialogProps) {
 }
 
 interface PropertiesListProps {
-  properties: Property[];
+  properties?: Property[];
 }
 
 function PropertiesList({ properties }: PropertiesListProps) {
   const [newPropertyFialogOpen, setNewProperttDialogOpen] = React.useState(
     false
   );
+  const handleCreateProperty = () => {
+    setNewProperttDialogOpen(true);
+  };
   const classes = useStyles();
   return (
     <div>
       <Typography variant="h5" className={classes.listTitle}>
         Properties
       </Typography>
-      <div className={classes.listContainer}>
-        <List component={Paper}>
-          {properties.map((property) => (
-            <ListItem
-              key={property.id}
-              button
-              component={Link}
-              href={`/property/${property.id}/audience`}
-            >
-              <ListItemAvatar>
-                <FaviconAvatar url={property.name} />
-              </ListItemAvatar>
-              <ListItemText primary={property.name} secondary={property.id} />
-            </ListItem>
-          ))}
-        </List>
-        <Fab
-          className={classes.fab}
-          onClick={() => setNewProperttDialogOpen(true)}
-        >
-          <AddIcon />
-        </Fab>
-      </div>
+      {properties ? (
+        <div className={classes.listContainer}>
+          <List component={Paper}>
+            {properties.length <= 0 ? (
+              <Typography className={classes.emptyList}>
+                No properties yet
+              </Typography>
+            ) : (
+              properties.map((property) => (
+                <ListItem
+                  key={property.id}
+                  button
+                  component={Link}
+                  href={`/property/${property.id}/audience`}
+                >
+                  <ListItemAvatar>
+                    <FaviconAvatar url={property.name} />
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={property.name}
+                    secondary={property.id}
+                  />
+                </ListItem>
+              ))
+            )}
+          </List>
+          <Fab className={classes.fab} onClick={handleCreateProperty}>
+            <AddIcon />
+          </Fab>
+        </div>
+      ) : (
+        <CircularProgress className={classes.loader} />
+      )}
       <NewPropertyDialog
         open={newPropertyFialogOpen}
         onClose={() => setNewProperttDialogOpen(false)}
@@ -123,5 +144,5 @@ function PropertiesList({ properties }: PropertiesListProps) {
 
 export default function Properties() {
   const { data: properties } = useSWR('anything', getProperties);
-  return properties ? <PropertiesList properties={properties} /> : null;
+  return <PropertiesList properties={properties} />;
 }
