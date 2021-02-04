@@ -23,7 +23,8 @@ const options: InitOptions = {
         (['potoms.jan@gmail.com', 'casierj@gmail.com'].includes(
           profile.email
         ) ||
-          profile.email.endsWith('@woorank.com'))
+          profile.email.endsWith('@woorank.com') ||
+          profile.email.endsWith('@bridgeline.com'))
       );
     },
   },
