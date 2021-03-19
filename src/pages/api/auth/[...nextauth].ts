@@ -20,11 +20,8 @@ const options: InitOptions = {
       return (
         profile.verified_email &&
         typeof profile.email === 'string' &&
-        (['potoms.jan@gmail.com', 'casierj@gmail.com'].includes(
-          profile.email
-        ) ||
-          profile.email.endsWith('@woorank.com') ||
-          profile.email.endsWith('@bridgeline.com'))
+        (([] as string[]).includes(profile.email) ||
+          profile.email.endsWith('@woorank.com'))
       );
     },
   },
